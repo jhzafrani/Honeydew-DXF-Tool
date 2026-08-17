@@ -1,0 +1,29 @@
+{
+  "name": "Apparel DXF Viewer",
+  "short_name": "DXF Viewer",
+  "description": "View, measure, and annotate AAMA/ASTM apparel pattern DXF files.",
+  "start_url": "apparel-dxf-viewer.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1216",
+  "theme_color": "#0f1216",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "file_handlers": [
+    {
+      "action": "apparel-dxf-viewer.html",
+      "accept": {
+        "application/dxf": [".dxf"],
+        "image/vnd.dxf": [".dxf"],
+        "application/octet-stream": [".dxf"]
+      },
+      "icons": [
+        { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }
+      ],
+      "launch_type": "single-client"
+    }
+  ]
+}

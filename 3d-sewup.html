@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Honeydew · 3D Sew-up (spike)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  :root{--bg:#0f1216;--panel:#171b22;--panel2:#1e242d;--line:#2a323d;--txt:#e6eaf0;--muted:#8a94a3;
+        --accent:#4c9aff;--green:#37c98b;--amber:#ffb454;--red:#ff6b6b;}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg);color:var(--txt);overflow:hidden}
+  #app{display:flex;height:100vh;width:100vw}
+  #side{width:320px;min-width:320px;background:var(--panel);border-right:1px solid var(--line);
+    display:flex;flex-direction:column;height:100%;overflow:hidden}
+  .hd{padding:12px 16px;border-bottom:1px solid var(--line);font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px}
+  .hd .tag{font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 6px;text-transform:uppercase;letter-spacing:.08em}
+  .sec{padding:12px 16px;border-bottom:1px solid var(--line)}
+  .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px;font-weight:600}
+  .btn{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:7px;padding:7px 12px;
+    font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{border-color:var(--accent)}
+  .btn.sm{padding:4px 9px;font-size:11.5px}
+  select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:13px;width:100%}
+  #main{flex:1;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 40%,#141922,#0d1015)}
+  canvas{display:block;position:absolute;inset:0}
+  #hud{position:absolute;left:12px;bottom:12px;font-size:12px;color:var(--muted);background:rgba(13,16,21,.8);
+    padding:6px 10px;border-radius:7px;pointer-events:none}
+  #viewToggle{position:absolute;top:12px;right:12px;z-index:5;display:flex;background:rgba(13,16,21,.8);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .vt{background:transparent;color:var(--muted);border:none;padding:6px 14px;font-size:12.5px;cursor:pointer}
+  .vt.on{background:var(--accent);color:#fff}
+  #tdcanvas{position:absolute;inset:0;display:none}
+  #drop{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted)}
+  #drop.hide{display:none}
+  #dropBtn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px 20px;font-size:14px;cursor:pointer}
+  .scroll{overflow-y:auto;flex:1;min-height:0}
+  .pairRow{display:flex;align-items:center;gap:8px;padding:6px 6px;border-radius:6px;cursor:pointer;font-size:12.5px;border:1px solid transparent}
+  .pairRow:hover{background:var(--panel2)}
+  .pairRow.sel{background:var(--panel2);border-color:var(--accent)}
+  .sw{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+  .pairRow .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pairRow .st{font-size:10px;padding:1px 6px;border-radius:8px}
+  .st.sug{background:#3a3420;color:var(--amber)}
+  .st.con{background:#173a2a;color:var(--green)}
+  .x{color:var(--muted);cursor:pointer}.x:hover{color:var(--red)}
+  .hint{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:6px}
+  .pill{font-size:10px;color:var(--muted);background:#0d1116;border-radius:4px;padding:1px 6px}
+  code{background:#0d1116;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:12px}
+</style></head>
+<body>
+<div id="app">
+  <aside id="side">
+    <div class="hd">🧵 3D Sew-up <span class="tag">spike · P1</span></div>
+    <div class="sec">
+      <button class="btn" id="openBtn">📂 Open DXF (+ .rul)</button>
+      <input type="file" id="fileInput" accept=".dxf,.rul" multiple hidden>
+      <div class="hint" id="fileInfo">No file loaded.</div>
+    </div>
+    <div class="sec">
+      <div class="lbl">Size</div>
+      <select id="sizeSel"></select>
+      <div class="hint">Seams are defined on one size; the mapping applies to all sizes.</div>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:10px;cursor:pointer;font-size:13px">
+        <input type="checkbox" id="meshChk" style="accent-color:var(--green)"> Show mesh (Phase 2)
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:8px;cursor:pointer;font-size:13px">
+        <input type="checkbox" id="placeChk" style="accent-color:var(--accent)"> Place on body — 3D (Phase 4)
+      </label>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+        <button class="btn sm" id="sewBtn">🧵 Sew up (P5)</button>
+        <button class="btn sm" id="drapeBtn">🧍 Drape (P6)</button>
+        <button class="btn sm" id="sewReset">Reset</button>
+      </div>
+      <div class="hint" id="sewInfo"></div>
+      <div class="hint" id="meshInfo"></div>
+    </div>
+    <div class="sec" style="display:flex;flex-direction:column;flex:1;min-height:0">
+      <div class="lbl" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Seam pairs</span>
+        <span class="pill" id="pairCount">0</span>
+      </div>
+      <div class="hint" id="pairHelp">Click an edge on the pattern, then a matching edge on another piece to pair them. Suggested pairs are amber; confirmed are green.</div>
+      <div class="scroll" id="pairList"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn sm" id="autoBtn">↻ Re-suggest</button>
+        <button class="btn sm" id="clearBtn">Clear</button>
+        <button class="btn sm" id="exportBtn">⬇ Seam map</button>
+      </div>
+    </div>
+  </aside>
+  <div id="main">
+    <div id="viewToggle">
+      <button class="vt on" id="v2d">2D</button><button class="vt" id="v3d">3D</button>
+    </div>
+    <canvas id="cv"></canvas>
+    <div id="drop">
+      <div style="font-size:40px;opacity:.5">🧵</div>
+      <div>Drop an apparel DXF here (add its .rul for size order)</div>
+      <button id="dropBtn">Choose file…</button>
+    </div>
+    <div id="hud"></div>
+  </div>
+</div>
+<script>
+"use strict";
+// Layer semantics observed in ETSYSTEM / AAMA apparel exports.
+const LAYERS = {
+  "1":  {name:"Cut line",        color:"var(--cut)",   css:"#e6eaf0", style:"solid",  w:2.0, z:5},
+  "14": {name:"Sew / seam line", color:"var(--sew)",   css:"#4c9aff", style:"dash",   w:1.3, z:4},
+  "7":  {name:"Grain line",      color:"var(--grain)", css:"#37c98b", style:"solid",  w:1.6, z:6, arrow:true},
+  "8":  {name:"Fold / internal", color:"var(--fold)",  css:"#c78bff", style:"solid",  w:1.2, z:3},
+  "2":  {name:"Seam marks",      color:"var(--sew)",   css:"#4c9aff", style:"pt",     w:1,   z:2},
+  "3":  {name:"Internal marks",  color:"var(--mark)",  css:"#ffb454", style:"pt",     w:1,   z:1},
+  "4":  {name:"Notches / turns", color:"var(--notch)", css:"#ffd93d", style:"notch",  w:1,   z:7},
+  "13": {name:"Drill holes",     color:"var(--drill)", css:"#ff6b6b", style:"drill",  w:1,   z:8},
+};
+function layerInfo(l){ return LAYERS[l] || {name:"Layer "+l,color:"#8a94a3",css:"#8a94a3",style:"solid",w:1,z:0}; }
+
+function parseDXF(buffer){
+  // Decode as GBK (superset of ASCII → numbers fine, Chinese names correct)
+  let text;
+  try { text = new TextDecoder("gbk").decode(buffer); }
+  catch(e){ text = new TextDecoder("utf-8").decode(buffer); }
+  const lines = text.split(/\r\n|\r|\n/);
+  const pairs = [];
+  for(let i=0;i+1<lines.length;i+=2){
+    pairs.push([lines[i].trim(), lines[i+1]]);
+  }
+
+  const blocks = {};      // name -> {ents:[], base:[x,y], meta:{}, texts:[]}
+  const inserts = [];     // {name, x, y}
+  let section=null, curBlock=null, ent=null, poly=null;
+
+  const flushEnt = () => {
+    if(!ent || !curBlock) { ent=null; return; }
+    if(ent.type==="POLYLINE"){ /* handled at SEQEND */ }
+    else curBlock.ents.push(ent);
+    ent=null;
+  };
+
+  for(let i=0;i<pairs.length;i++){
+    const [code, valRaw] = pairs[i];
+    const val = (valRaw||"").trim();
+    if(code==="0"){
+      // close any open simple entity
+      if(ent && ent.type!=="POLYLINE" && curBlock){ curBlock.ents.push(ent); ent=null; }
+      if(val==="SECTION"){ section = (pairs[i+1] && pairs[i+1][0]==="2") ? pairs[i+2] && "" : ""; }
+      if(val==="BLOCK"){ curBlock={name:"",ents:[],base:[0,0],meta:{},texts:[]}; ent=null; poly=null; }
+      else if(val==="ENDBLK"){ if(curBlock){ blocks[curBlock.name]=curBlock; } curBlock=null; }
+      else if(val==="POLYLINE"){ poly={type:"POLYLINE",layer:"0",closed:false,verts:[]}; ent=poly; }
+      else if(val==="VERTEX"){ ent={type:"VERTEX",layer:"0",x:0,y:0}; }
+      else if(val==="SEQEND"){ if(poly && curBlock){ curBlock.ents.push(poly); } poly=null; ent=null; }
+      else if(val==="LINE"){ ent={type:"LINE",layer:"0",x1:0,y1:0,x2:0,y2:0}; }
+      else if(val==="POINT"){ ent={type:"POINT",layer:"0",x:0,y:0}; }
+      else if(val==="TEXT"){ ent={type:"TEXT",layer:"0",x:0,y:0,str:""}; }
+      else if(val==="INSERT"){ ent={type:"INSERT",name:"",x:0,y:0}; }
+      else { ent=null; }
+      continue;
+    }
+    if(!curBlock && !(ent && ent.type==="INSERT")) continue;
+
+    // section marker for blocks vs entities
+    if(code==="2" && curBlock && curBlock.name==="" && !ent){ curBlock.name=val; continue; }
+
+    if(ent){
+      switch(ent.type){
+        case "VERTEX":
+          if(code==="8") ent.layer=val;
+          else if(code==="10") ent.x=parseFloat(val);
+          else if(code==="20") ent.y=parseFloat(val);
+          if(code==="20" && poly){ poly.verts.push([ent.x,ent.y]); poly.layer=ent.layer; ent=null; }
+          break;
+        case "POLYLINE":
+          if(code==="8") ent.layer=val;
+          else if(code==="70") ent.closed = (parseInt(val)&1)===1;
+          break;
+        case "LINE":
+          if(code==="8") ent.layer=val;
+          else if(code==="10") ent.x1=parseFloat(val);
+          else if(code==="20") ent.y1=parseFloat(val);
+          else if(code==="11") ent.x2=parseFloat(val);
+          else if(code==="21") ent.y2=parseFloat(val);
+          break;
+        case "POINT":
+          if(code==="8") ent.layer=val;
+          else if(code==="10") ent.x=parseFloat(val);
+          else if(code==="20") ent.y=parseFloat(val);
+          break;
+        case "TEXT":
+          if(code==="8") ent.layer=val;
+          else if(code==="10") ent.x=parseFloat(val);
+          else if(code==="20") ent.y=parseFloat(val);
+          else if(code==="1") ent.str=valRaw;
+          break;
+        case "INSERT":
+          if(code==="2") ent.name=val;
+          else if(code==="10") ent.x=parseFloat(val);
+          else if(code==="20") ent.y=parseFloat(val);
+          break;
+      }
+    }
+  }
+  // capture inserts (walk again quickly for INSERT ents that ended at EOF/next 0)
+  // Simpler: reparse ENTITIES inserts
+  {
+    let cur=null;
+    for(let i=0;i<pairs.length;i++){
+      const [code,valRaw]=pairs[i]; const val=(valRaw||"").trim();
+      if(code==="0"){
+        if(cur){ inserts.push(cur); cur=null; }
+        if(val==="INSERT") cur={name:"",x:0,y:0};
+      } else if(cur){
+        if(code==="2") cur.name=val;
+        else if(code==="10") cur.x=parseFloat(val);
+        else if(code==="20") cur.y=parseFloat(val);
+      }
+    }
+    if(cur) inserts.push(cur);
+  }
+
+  // Build pieces. Extract metadata from TEXT entities.
+  const metaKeys = {
+    "Piece Name":"name","Size":"size","Quantity":"qty",
+    "Material":"material","Category":"category","Annotation":"annotation"
+  };
+  const pieces = [];
+  const insByName = {};
+  inserts.forEach(ins=>{ if(ins.name) insByName[ins.name]=ins; });
+
+  Object.values(blocks).forEach(b=>{
+    const ins = insByName[b.name] || {x:0,y:0};
+    const dx=ins.x||0, dy=ins.y||0;
+    const meta={name:b.name};
+    const geo=[]; const labels=[];
+    b.ents.forEach(e=>{
+      if(e.type==="TEXT"){
+        const s=(e.str||"").trim();
+        let matched=false;
+        for(const key in metaKeys){
+          if(s.startsWith(key+":")){ meta[metaKeys[key]] = s.slice(key.length+1).trim(); matched=true; break; }
+        }
+        if(!matched && s) labels.push({x:e.x+dx,y:e.y+dy,str:s,layer:e.layer});
+      } else if(e.type==="POLYLINE"){
+        geo.push({type:"poly",layer:e.layer,closed:e.closed,verts:e.verts.map(v=>[v[0]+dx,v[1]+dy])});
+      } else if(e.type==="LINE"){
+        geo.push({type:"line",layer:e.layer,verts:[[e.x1+dx,e.y1+dy],[e.x2+dx,e.y2+dy]]});
+      } else if(e.type==="POINT"){
+        geo.push({type:"point",layer:e.layer,x:e.x+dx,y:e.y+dy});
+      }
+    });
+    // bounding box (from cut line if present, else all)
+    let minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
+    geo.forEach(g=>{
+      const vs = g.verts || [[g.x,g.y]];
+      vs.forEach(([x,y])=>{ if(x<minx)minx=x; if(y<miny)miny=y; if(x>maxx)maxx=x; if(y>maxy)maxy=y; });
+    });
+    pieces.push({meta,geo,labels,bbox:[minx,miny,maxx,maxy]});
+  });
+
+  // ---- recover embedded annotations: layer 90 TEXT (JSON "ANNO1:" or legacy "ANNO:") ----
+  const annotationsFound=[];
+  const pomsFound=[];
+  const takeAnno = c => {
+    if(!(c && c.type==="TEXT" && c.layer==="90")) return;
+    const s=(c.str||"").trim();
+    if(s.startsWith("POMSET1:")){
+      try{ const o=JSON.parse(s.slice(8)); if(o&&Array.isArray(o.poms)) o.poms.forEach(x=>pomsFound.push(x)); }catch(e){/* ignore */}
+      return;
+    }
+    if(s.startsWith("ANNO1:")){
+      try{
+        const o=JSON.parse(s.slice(6));
+        annotationsFound.push({type:o.t||"point", pts:o.p||[[c.x,c.y]], note:o.n||"",
+          category:o.c||"note", color:o.col||"", piece:o.pc||"", author:o.au||"", date:o.d||""});
+      }catch(e){/* ignore malformed */}
+    } else if(s.startsWith("ANNO:")){
+      annotationsFound.push({type:"point", pts:[[c.x,c.y]], note:s.replace(/^ANNO:\s?/,"").trim(), category:"note"});
+    }
+  };
+  {
+    let cur=null;
+    for(let i=0;i<pairs.length;i++){
+      const [code,valRaw]=pairs[i]; const val=(valRaw||"").trim();
+      if(code==="0"){ takeAnno(cur); cur = (val==="TEXT")?{type:"TEXT",layer:"0",x:0,y:0,str:""}:null; }
+      else if(cur){
+        if(code==="8") cur.layer=val;
+        else if(code==="10") cur.x=parseFloat(val);
+        else if(code==="20") cur.y=parseFloat(val);
+        else if(code==="1") cur.str=valRaw;
+      }
+    }
+    takeAnno(cur);
+  }
+
+  return {pieces, headerAAMA: /ANSI\/AAMA/.test(text), annotations: annotationsFound, poms: pomsFound};
+}
+/* Phase 2 — triangulate a pattern piece into a fairly uniform 2D mesh.
+   Boundary is preserved exactly (all outline vertices kept, long edges subdivided);
+   interior filled with a grid of points; Delaunay (Bowyer-Watson); triangles whose
+   centroid falls outside the outline are dropped (handles concave shapes).
+   Pure functions so it can be unit-tested headlessly and reused in the browser. */
+(function(root){
+"use strict";
+const EPS=1e-9;
+
+function dedupe(ring){
+  const out=[];
+  for(const p of ring){ const q=out[out.length-1]; if(!q||Math.hypot(p[0]-q[0],p[1]-q[1])>1e-6) out.push([p[0],p[1]]); }
+  if(out.length>1){ const a=out[0],b=out[out.length-1]; if(Math.hypot(a[0]-b[0],a[1]-b[1])<1e-6) out.pop(); }
+  return out;
+}
+function polyArea(ring){ let A=0; for(let i=0;i<ring.length;i++){ const a=ring[i],b=ring[(i+1)%ring.length]; A+=a[0]*b[1]-b[0]*a[1]; } return Math.abs(A)/2; }
+function pointInPoly(p,ring){
+  let inside=false; const x=p[0],y=p[1];
+  for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+    const xi=ring[i][0],yi=ring[i][1],xj=ring[j][0],yj=ring[j][1];
+    if(((yi>y)!==(yj>y)) && (x < (xj-xi)*(y-yi)/((yj-yi)||EPS)+xi)) inside=!inside;
+  }
+  return inside;
+}
+function distPointSeg(p,a,b){ const dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy;
+  let t=L2?((p[0]-a[0])*dx+(p[1]-a[1])*dy)/L2:0; t=Math.max(0,Math.min(1,t));
+  return Math.hypot(p[0]-(a[0]+t*dx),p[1]-(a[1]+t*dy)); }
+function minDistToRing(p,ring){ let m=1e18; for(let i=0;i<ring.length;i++) m=Math.min(m,distPointSeg(p,ring[i],ring[(i+1)%ring.length])); return m; }
+
+// boundary points: keep outline vertices + subdivide long edges, then collapse
+// points that end up closer than minGap so we don't seed sliver triangles at corners
+function boundaryPoints(ring,spacing){
+  const raw=[];
+  for(let i=0;i<ring.length;i++){
+    const a=ring[i],b=ring[(i+1)%ring.length]; raw.push([a[0],a[1]]);
+    const L=Math.hypot(b[0]-a[0],b[1]-a[1]); const n=Math.floor(L/spacing);
+    for(let k=1;k<=n;k++){ const t=k/(n+1); raw.push([a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t]); }
+  }
+  const minGap=spacing*0.4, out=[];
+  for(let i=0;i<raw.length;i++){ const q=out[out.length-1];
+    if(!q || Math.hypot(raw[i][0]-q[0],raw[i][1]-q[1])>=minGap) out.push(raw[i]); }
+  // wrap: drop last if it hugs the first
+  if(out.length>3 && Math.hypot(out[0][0]-out[out.length-1][0],out[0][1]-out[out.length-1][1])<minGap) out.pop();
+  return out;
+}
+
+// --- Bowyer-Watson Delaunay ---
+function circumContains(ax,ay,bx,by,cx,cy,px,py){
+  // returns true if p is strictly inside circumcircle of (a,b,c); assumes ccw
+  const adx=ax-px,ady=ay-py,bdx=bx-px,bdy=by-py,cdx=cx-px,cdy=cy-py;
+  const d = (adx*adx+ady*ady)*(bdx*cdy-cdx*bdy)
+          - (bdx*bdx+bdy*bdy)*(adx*cdy-cdx*ady)
+          + (cdx*cdx+cdy*cdy)*(adx*bdy-bdx*ady);
+  return d>EPS;
+}
+function orient(ax,ay,bx,by,cx,cy){ return (bx-ax)*(cy-ay)-(by-ay)*(cx-ax); }
+function delaunay(P){
+  let minx=1e18,miny=1e18,maxx=-1e18,maxy=-1e18;
+  P.forEach(p=>{minx=Math.min(minx,p[0]);miny=Math.min(miny,p[1]);maxx=Math.max(maxx,p[0]);maxy=Math.max(maxy,p[1]);});
+  const dx=(maxx-minx)||1, dy=(maxy-miny)||1, dm=Math.max(dx,dy)*20, mx=(minx+maxx)/2, my=(miny+maxy)/2;
+  const pts=P.slice();
+  const s0=pts.push([mx-dm,my-dm])-1, s1=pts.push([mx,my+dm])-1, s2=pts.push([mx+dm,my-dm])-1;
+  // ensure ccw super
+  let tris=[[s0,s1,s2]];
+  const ccw=(t)=>{ if(orient(pts[t[0]][0],pts[t[0]][1],pts[t[1]][0],pts[t[1]][1],pts[t[2]][0],pts[t[2]][1])<0){ return [t[0],t[2],t[1]]; } return t; };
+  tris=tris.map(ccw);
+  for(let ip=0; ip<P.length; ip++){
+    const px=pts[ip][0], py=pts[ip][1];
+    const bad=[];
+    for(const t of tris){ if(circumContains(pts[t[0]][0],pts[t[0]][1],pts[t[1]][0],pts[t[1]][1],pts[t[2]][0],pts[t[2]][1],px,py)) bad.push(t); }
+    // boundary edges of the cavity
+    const edgeCount=new Map();
+    const key=(a,b)=>a<b?a+"_"+b:b+"_"+a;
+    bad.forEach(t=>{ [[t[0],t[1]],[t[1],t[2]],[t[2],t[0]]].forEach(e=>{ const k=key(e[0],e[1]); edgeCount.set(k,(edgeCount.get(k)||0)+1); }); });
+    const badSet=new Set(bad);
+    tris=tris.filter(t=>!badSet.has(t));
+    bad.forEach(t=>{ [[t[0],t[1]],[t[1],t[2]],[t[2],t[0]]].forEach(e=>{ if(edgeCount.get(key(e[0],e[1]))===1){ tris.push(ccw([e[0],e[1],ip])); } }); });
+  }
+  // drop triangles touching super vertices
+  return tris.filter(t=>t[0]<P.length && t[1]<P.length && t[2]<P.length);
+}
+
+function triangulate(ringIn, spacing){
+  const ring=dedupe(ringIn);
+  if(ring.length<3) return {verts:[],tris:[],ring, area:0, meshArea:0, coverage:0, minTriArea:0};
+  spacing = spacing || 18;
+  const bpts=boundaryPoints(ring,spacing);
+  // interior grid
+  let minx=1e18,miny=1e18,maxx=-1e18,maxy=-1e18;
+  ring.forEach(p=>{minx=Math.min(minx,p[0]);miny=Math.min(miny,p[1]);maxx=Math.max(maxx,p[0]);maxy=Math.max(maxy,p[1]);});
+  const ipts=[];
+  const jitter=spacing*0.0001;
+  for(let y=miny+spacing*0.5; y<maxy; y+=spacing){
+    let row=0;
+    for(let x=minx+spacing*0.5; x<maxx; x+=spacing){
+      const p=[x+ (row%2?spacing*0.5:0) + jitter, y]; row++;
+      if(pointInPoly(p,ring) && minDistToRing(p,ring)>spacing*0.55) ipts.push(p);
+    }
+  }
+  const P=bpts.concat(ipts);
+  let tris=delaunay(P);
+  // keep triangles whose centroid is inside the outline, drop slivers
+  const area=polyArea(ring);
+  const kept=[]; let meshArea=0, minTriArea=1e18;
+  for(const t of tris){
+    const A=[P[t[0]],P[t[1]],P[t[2]]];
+    const c=[(A[0][0]+A[1][0]+A[2][0])/3,(A[0][1]+A[1][1]+A[2][1])/3];
+    if(!pointInPoly(c,ring)) continue;
+    const ta=Math.abs(orient(A[0][0],A[0][1],A[1][0],A[1][1],A[2][0],A[2][1]))/2;
+    if(ta<1e-6) continue;
+    kept.push(t); meshArea+=ta; minTriArea=Math.min(minTriArea,ta);
+  }
+  return { verts:P, tris:kept, ring, boundaryCount:bpts.length,
+           area, meshArea, coverage: area? meshArea/area : 0, minTriArea: kept.length?minTriArea:0 };
+}
+
+const API={ triangulate, polyArea, pointInPoly, dedupe };
+if(typeof module!=="undefined" && module.exports) module.exports=API;
+root.MESH=API;
+})(typeof window!=="undefined"?window:globalThis);
+
+
+/* ============================================================
+   Phase 1 — seam segmentation + pairing
+   ============================================================ */
+const cv=document.getElementById("cv"), ctx=cv.getContext("2d"), main=document.getElementById("main");
+const els={ fileInfo:document.getElementById("fileInfo"), sizeSel:document.getElementById("sizeSel"),
+  pairList:document.getElementById("pairList"), pairCount:document.getElementById("pairCount"),
+  drop:document.getElementById("drop"), hud:document.getElementById("hud") };
+let model=null, ruleText=null, curSize=null;
+let view={scale:1,ox:0,oy:0};
+let edges=[];               // seam edges for current size: {id,piece,vs,len,notch,mid,bbox}
+let pairs=[];               // {a,b,status,hue}
+let selEdge=null, selPair=-1;
+let hueN=0;
+let meshes={};              // pieceIdx -> {verts,tris,...} (Phase 2)
+let showMesh=false;
+const MESH_SPACING=18;      // mm target triangle spacing
+let placed={};              // pieceIdx -> Float32Array of placed 3D positions (Phase 4)
+let placeMode=false;        // arrange on body vs lay flat
+
+const hyp=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+function baseName(p){ const s=p.meta.name.split("."); return s.length>=2?s.slice(0,-1).join("."):p.meta.name; }
+function displayName(p){ return (baseName(p).split(".").pop()||p.meta.name); }
+function cutPoly(p){ return p.geo.find(g=>g.layer==="1"&&g.type==="poly"); }
+function pieceNotches(p){ return p.geo.filter(g=>g.type==="point"&&g.layer==="4").map(g=>[g.x,g.y]); }
+
+function ptSeg(p,a,b){ const dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy;
+  let t=L2?((p[0]-a[0])*dx+(p[1]-a[1])*dy)/L2:0; t=Math.max(0,Math.min(1,t));
+  return Math.hypot(p[0]-(a[0]+t*dx),p[1]-(a[1]+t*dy)); }
+function polyLen(vs){ let L=0; for(let i=0;i<vs.length-1;i++) L+=hyp(vs[i],vs[i+1]); return L; }
+
+// split a closed polygon into boundary edges at sharp corners, merging tiny edges
+function segmentEdges(verts, cornerDeg, minLen){
+  const n=verts.length; if(n<4) return [{vs:verts.slice()}];
+  const turn=[];
+  for(let i=0;i<n;i++){
+    const a=verts[(i-1+n)%n],b=verts[i],c=verts[(i+1)%n];
+    const v1=[b[0]-a[0],b[1]-a[1]],v2=[c[0]-b[0],c[1]-b[1]];
+    const l1=Math.hypot(...v1)||1,l2=Math.hypot(...v2)||1;
+    let d=(v1[0]*v2[0]+v1[1]*v2[1])/(l1*l2); d=Math.max(-1,Math.min(1,d));
+    turn[i]=Math.acos(d)*180/Math.PI;
+  }
+  let corners=[]; for(let i=0;i<n;i++) if(turn[i]>cornerDeg) corners.push(i);
+  if(corners.length<2) return [{vs:verts.slice()}];
+  let edges=[];
+  for(let k=0;k<corners.length;k++){
+    const a=corners[k], b=corners[(k+1)%corners.length]; const seq=[]; let i=a;
+    while(true){ seq.push(verts[i]); if(i===b) break; i=(i+1)%n; }
+    edges.push({vs:seq, len:polyLen(seq)});
+  }
+  // merge edges shorter than minLen into the previous edge
+  let changed=true;
+  while(changed && edges.length>2){
+    changed=false;
+    for(let k=0;k<edges.length;k++){
+      if(edges[k].len<minLen){
+        const prev=(k-1+edges.length)%edges.length;
+        edges[prev].vs=edges[prev].vs.concat(edges[k].vs.slice(1));
+        edges[prev].len=polyLen(edges[prev].vs);
+        edges.splice(k,1); changed=true; break;
+      }
+    }
+  }
+  return edges;
+}
+function bboxOf(vs){ let a=1e9,b=1e9,c=-1e9,d=-1e9; vs.forEach(([x,y])=>{if(x<a)a=x;if(y<b)b=y;if(x>c)c=x;if(y>d)d=y;}); return [a,b,c,d]; }
+
+function buildEdges(){
+  edges=[]; if(!model) return;
+  const pieces=model.pieces.map((p,i)=>({p,i})).filter(x=>(x.p.meta.size||"")===curSize && cutPoly(x.p));
+  pieces.forEach(x=>{
+    const cut=cutPoly(x.p), nt=pieceNotches(x.p);
+    const segs=segmentEdges(cut.verts, 32, 15);
+    segs.forEach((e,k)=>{
+      let nc=0; for(const q of nt){ let bd=1e9; for(let i=0;i<e.vs.length-1;i++) bd=Math.min(bd,ptSeg(q,e.vs[i],e.vs[i+1])); if(bd<6) nc++; }
+      edges.push({ id:x.i+"_"+k, piece:x.i, vs:e.vs, len:e.len, notch:nc,
+        mid:e.vs[Math.floor(e.vs.length/2)], bbox:bboxOf(e.vs) });
+    });
+  });
+}
+function edgeById(id){ return edges.find(e=>e.id===id); }
+function isPaired(id){ return pairs.some(pr=>pr.a===id||pr.b===id); }
+
+// Phase 2 — triangulate the current size's pieces into meshes
+function buildMeshes(){
+  meshes={}; if(!model) return; let tv=0,tt=0;
+  model.pieces.forEach((p,i)=>{ if((p.meta.size||"")!==curSize) return; const cut=cutPoly(p); if(!cut) return;
+    const m=MESH.triangulate(cut.verts, MESH_SPACING); meshes[i]=m; tv+=m.verts.length; tt+=m.tris.length; });
+  const el=document.getElementById("meshInfo");
+  if(el) el.textContent = Object.keys(meshes).length+" pieces · "+tv+" verts · "+tt+" triangles";
+  computePlaced();
+}
+
+/* Phase 4 — classify pieces and wrap them onto a body cylinder */
+function roleOf(name){
+  const s=String(name);
+  if(/waist|腰/i.test(s)) return "waist";
+  if(/pocket|袋/i.test(s)) return "pocket";
+  if(/sleeve|袖/i.test(s)) return "sleeve";
+  if(/collar|领/i.test(s)) return "collar";
+  if(/cuff|克夫|袖口/i.test(s)) return "cuff";
+  if(/side|侧/i.test(s)) return "side";
+  if(/back|后/i.test(s)) return "back";
+  if(/front|前/i.test(s)) return "front";
+  return "other";
+}
+function computePlaced(){
+  placed={}; if(!model) return;
+  const ids=Object.keys(meshes).map(Number);
+  const info=ids.map(i=>{ const m=meshes[i]; const xs=m.verts.map(v=>v[0]),ys=m.verts.map(v=>v[1]);
+    return {i, role:roleOf(displayName(model.pieces[i])),
+      minx:Math.min(...xs),maxx:Math.max(...xs),miny:Math.min(...ys),maxy:Math.max(...ys),
+      w:Math.max(...xs)-Math.min(...xs), h:Math.max(...ys)-Math.min(...ys)}; });
+  const wOf=r=>{const p=info.filter(z=>z.role===r); return p.length?p.reduce((s,z)=>s+z.w,0)/p.length:0;};
+  const frontW=wOf("front")||wOf("other")||150, backW=wOf("back")||frontW;
+  let R=(frontW+backW)/(2*Math.PI); if(!isFinite(R)||R<40) R=(Math.max(...info.map(z=>z.w))||300)/Math.PI;
+  const seen={};
+  info.forEach(z=>{
+    const m=meshes[z.i]; const xc=(z.minx+z.maxx)/2, ytop=z.maxy;
+    const k=(seen[z.role]=(seen[z.role]||0)); seen[z.role]++;
+    const altSign=k%2?-1:1, altStep=0.4*Math.ceil(k/2);
+    let theta0=0, radius=R, xoff=0, zoff=0, yoff=0;
+    if(z.role==="front") theta0=altSign*altStep;
+    else if(z.role==="back") theta0=Math.PI+altSign*altStep;
+    else if(z.role==="side") theta0=altSign*Math.PI/2;
+    else if(z.role==="waist"){ radius=z.w/(2*Math.PI); theta0=Math.PI; yoff=R*0.02; }
+    else if(z.role==="sleeve"){ radius=R*0.5; xoff=altSign*R*2.6; }
+    else if(z.role==="pocket"||z.role==="collar"||z.role==="cuff"){ radius=R*0.6; zoff=-R*0.2; yoff=-R*0.3; }
+    else theta0=k*Math.PI/2;
+    const pos=new Float32Array(m.verts.length*3);
+    m.verts.forEach((v,vi)=>{ const u=v[0]-xc, th=theta0+u/radius;
+      pos[vi*3]=radius*Math.sin(th)+xoff;
+      pos[vi*3+1]=(v[1]-ytop)+yoff;
+      pos[vi*3+2]=radius*Math.cos(th)+zoff;
+    });
+    placed[z.i]=pos;
+  });
+}
+
+function autoSuggest(){
+  // keep confirmed manual pairs, replace suggested ones
+  pairs=pairs.filter(p=>p.status==="confirmed");
+  const usedIds=new Set(); pairs.forEach(p=>{usedIds.add(p.a);usedIds.add(p.b);});
+  const cand=edges.filter(e=>e.len>40 && !usedIds.has(e.id)).slice().sort((a,b)=>b.len-a.len);
+  for(const A of cand){ if(usedIds.has(A.id)) continue;
+    let best=null,score=1e9;
+    for(const B of cand){ if(B.id===A.id||usedIds.has(B.id)||B.piece===A.piece) continue;
+      const dl=Math.abs(A.len-B.len); if(dl>Math.max(10,A.len*0.08)) continue;
+      const s=dl - (A.notch===B.notch?6:0);   // notch match is a soft bonus
+      if(s<score){ score=s; best=B; }
+    }
+    if(best){ usedIds.add(A.id); usedIds.add(best.id); pairs.push({a:A.id,b:best.id,status:"suggested",hue:(hueN++*47)%360}); }
+  }
+  renderPairs(); draw();
+}
+function addManualPair(aId,bId){
+  const A=edgeById(aId),B=edgeById(bId); if(!A||!B||A.piece===B.piece) return;
+  // remove any existing pairs using these edges
+  pairs=pairs.filter(p=>p.a!==aId&&p.b!==aId&&p.a!==bId&&p.b!==bId);
+  pairs.push({a:aId,b:bId,status:"confirmed",hue:(hueN++*47)%360});
+  renderPairs(); draw();
+}
+
+/* ---------- transform + rendering ---------- */
+function resize(){ const r=main.getBoundingClientRect(); const dpr=devicePixelRatio||1;
+  cv.width=r.width*dpr; cv.height=r.height*dpr; cv.style.width=r.width+"px"; cv.style.height=r.height+"px";
+  ctx.setTransform(dpr,0,0,dpr,0,0); draw(); }
+addEventListener("resize",resize);
+function m2s(x,y){ return [x*view.scale+view.ox, -y*view.scale+view.oy]; }
+function s2m(sx,sy){ return [(sx-view.ox)/view.scale, -(sy-view.oy)/view.scale]; }
+function fit(){
+  if(!model) return; const r=main.getBoundingClientRect();
+  const pcs=model.pieces.filter(p=>(p.meta.size||"")===curSize && cutPoly(p));
+  if(!pcs.length) return;
+  let a=1e9,b=1e9,c=-1e9,d=-1e9; pcs.forEach(p=>{const bb=bboxOf(cutPoly(p).verts); if(bb[0]<a)a=bb[0];if(bb[1]<b)b=bb[1];if(bb[2]>c)c=bb[2];if(bb[3]>d)d=bb[3];});
+  const w=c-a||1,h=d-b||1; view.scale=Math.min(r.width/w,r.height/h)*0.86;
+  view.ox=r.width/2-((a+c)/2)*view.scale; view.oy=r.height/2+((b+d)/2)*view.scale; draw();
+}
+function hueColor(h,l){ return `hsl(${h},70%,${l||60}%)`; }
+function draw(){
+  const r=main.getBoundingClientRect(); ctx.clearRect(0,0,r.width,r.height);
+  if(!model) return;
+  const pcs=model.pieces.map((p,i)=>({p,i})).filter(x=>(x.p.meta.size||"")===curSize && cutPoly(x.p));
+  // outlines
+  ctx.lineWidth=1.4; ctx.strokeStyle="rgba(230,234,240,.35)";
+  pcs.forEach(x=>{ const cut=cutPoly(x.p);
+    ctx.beginPath(); cut.verts.forEach((v,k)=>{const[sx,sy]=m2s(v[0],v[1]); k?ctx.lineTo(sx,sy):ctx.moveTo(sx,sy);}); ctx.closePath(); ctx.stroke();
+    // piece name
+    const bb=bboxOf(cut.verts); const [cx,cy]=m2s((bb[0]+bb[2])/2,(bb[1]+bb[3])/2);
+    ctx.fillStyle="rgba(13,16,21,.7)"; const nm=displayName(x.p); ctx.font="600 12px sans-serif";
+    const tw=ctx.measureText(nm).width; ctx.fillRect(cx-tw/2-5,cy-9,tw+10,17);
+    ctx.fillStyle="#e6eaf0"; ctx.textAlign="center"; ctx.fillText(nm,cx,cy+3); ctx.textAlign="left";
+    // notches
+    pieceNotches(x.p).forEach(q=>{const[sx,sy]=m2s(q[0],q[1]); ctx.fillStyle="#ffd93d"; ctx.beginPath(); ctx.arc(sx,sy,2.4,0,7); ctx.fill();});
+  });
+  // Phase 2 mesh overlay
+  if(showMesh){
+    ctx.lineWidth=0.6; ctx.strokeStyle="rgba(55,201,139,.55)";
+    pcs.forEach(x=>{ const m=meshes[x.i]; if(!m) return;
+      ctx.beginPath();
+      m.tris.forEach(t=>{ const A=m.verts[t[0]],B=m.verts[t[1]],C=m.verts[t[2]];
+        const[ax,ay]=m2s(A[0],A[1]),[bx,by]=m2s(B[0],B[1]),[cx,cy]=m2s(C[0],C[1]);
+        ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.lineTo(cx,cy);ctx.closePath(); });
+      ctx.stroke();
+    });
+  }
+  // seam edges
+  const pairOf={}; pairs.forEach(pr=>{ pairOf[pr.a]=pr; pairOf[pr.b]=pr; });
+  edges.forEach(e=>{
+    const pr=pairOf[e.id]; const isSel=(selEdge===e.id)||(selPair>=0&&pairs[selPair]&&(pairs[selPair].a===e.id||pairs[selPair].b===e.id));
+    let col,w;
+    if(pr){ col=hueColor(pr.hue, pr.status==="confirmed"?58:66); w=isSel?5:3; }
+    else { col="rgba(230,234,240,.85)"; w=isSel?4:2; }
+    ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(pr&&pr.status==="suggested"?[7,4]:[]);
+    ctx.beginPath(); e.vs.forEach((v,k)=>{const[sx,sy]=m2s(v[0],v[1]); k?ctx.lineTo(sx,sy):ctx.moveTo(sx,sy);}); ctx.stroke();
+    ctx.setLineDash([]);
+    if(isSel){ const [mx,my]=m2s(e.mid[0],e.mid[1]); ctx.fillStyle=col; ctx.beginPath(); ctx.arc(mx,my,5,0,7); ctx.fill(); }
+  });
+}
+
+/* ---------- picking ---------- */
+function edgeAt(px,py){
+  let best=null,bd=10;
+  edges.forEach(e=>{ for(let i=0;i<e.vs.length-1;i++){ const [ax,ay]=m2s(e.vs[i][0],e.vs[i][1]),[bx,by]=m2s(e.vs[i+1][0],e.vs[i+1][1]);
+    const d=ptSeg([px,py],[ax,ay],[bx,by]); if(d<bd){bd=d;best=e;} } });
+  return best;
+}
+let drag=false,last=[0,0],moved=false;
+cv.addEventListener("mousedown",e=>{ drag=true;moved=false;last=[e.clientX,e.clientY]; });
+addEventListener("mousemove",e=>{ if(!drag) return; const dx=e.clientX-last[0],dy=e.clientY-last[1];
+  if(Math.abs(dx)+Math.abs(dy)>3) moved=true; view.ox+=dx;view.oy+=dy;last=[e.clientX,e.clientY]; draw(); });
+addEventListener("mouseup",e=>{ drag=false; });
+cv.addEventListener("click",e=>{
+  if(moved||!model) return;
+  const r=cv.getBoundingClientRect(); const hit=edgeAt(e.clientX-r.left,e.clientY-r.top);
+  if(!hit){ selEdge=null; selPair=-1; renderPairs(); draw(); return; }
+  if(selEdge && selEdge!==hit.id){ addManualPair(selEdge,hit.id); selEdge=null; }
+  else { selEdge=hit.id; selPair=-1; }
+  renderPairs(); draw();
+});
+cv.addEventListener("wheel",e=>{ e.preventDefault(); const r=cv.getBoundingClientRect();
+  const mx=e.clientX-r.left,my=e.clientY-r.top; const [wx,wy]=s2m(mx,my);
+  view.scale*=e.deltaY<0?1.08:1/1.08; view.ox=mx-wx*view.scale; view.oy=my+wy*view.scale; draw(); },{passive:false});
+
+/* ---------- pair list UI ---------- */
+function renderPairs(){
+  els.pairCount.textContent=pairs.length;
+  els.pairList.innerHTML="";
+  pairs.forEach((pr,idx)=>{
+    const A=edgeById(pr.a),B=edgeById(pr.b); if(!A||!B) return;
+    const row=document.createElement("div"); row.className="pairRow"+(idx===selPair?" sel":"");
+    row.innerHTML=`<span class="sw" style="background:${hueColor(pr.hue,58)}"></span>`
+      +`<span class="nm">${displayName(model.pieces[A.piece])} ↔ ${displayName(model.pieces[B.piece])}`
+      +` <span class="pill">${A.len.toFixed(0)}·${B.len.toFixed(0)}mm</span></span>`
+      +`<span class="st ${pr.status==="confirmed"?"con":"sug"}">${pr.status==="confirmed"?"✓":"?"}</span>`
+      +`<span class="x">✕</span>`;
+    row.onclick=ev=>{ if(ev.target.classList.contains("x")){ pairs.splice(idx,1); if(selPair===idx)selPair=-1; renderPairs(); draw(); return; }
+      selPair=idx; selEdge=null;
+      // frame the pair
+      const bb=bboxOf(A.vs.concat(B.vs)); const r=main.getBoundingClientRect();
+      const w=bb[2]-bb[0]||1,h=bb[3]-bb[1]||1; view.scale=Math.min(r.width/w,r.height/h)*0.5;
+      view.ox=r.width/2-((bb[0]+bb[2])/2)*view.scale; view.oy=r.height/2+((bb[1]+bb[3])/2)*view.scale;
+      renderPairs(); draw();
+    };
+    // confirm a suggested pair by clicking its status badge
+    row.querySelector(".st").onclick=ev=>{ ev.stopPropagation(); if(pr.status==="suggested"){ pr.status="confirmed"; renderPairs(); draw(); } };
+    els.pairList.appendChild(row);
+  });
+}
+function seamMap(){
+  return { style: model.pieces[0]? baseName(model.pieces[0]).split(".")[0]:"", size:curSize,
+    pairs: pairs.map(pr=>{ const A=edgeById(pr.a),B=edgeById(pr.b);
+      return { a:{piece:displayName(model.pieces[A.piece]), len:+A.len.toFixed(1), notches:A.notch},
+               b:{piece:displayName(model.pieces[B.piece]), len:+B.len.toFixed(1), notches:B.notch},
+               status:pr.status }; }) };
+}
+
+/* ---------- file loading ---------- */
+function loadModel(M, rt){
+  model=M; ruleText=rt||null; pairs=[]; selEdge=null; selPair=-1;
+  // size order + sample from .rul
+  const present=[...new Set(M.pieces.map(p=>p.meta.size).filter(Boolean))];
+  let order=present;
+  if(rt){ const mm=rt.match(/SIZE LIST:\s*(.+)/); if(mm) order=mm[1].trim().split(/\s+/).filter(s=>present.includes(s)); }
+  const sample=(rt&&(rt.match(/SAMPLE SIZE:\s*(\S+)/)||[])[1])||order[Math.floor(order.length/2)]||present[0]||"";
+  curSize=sample;
+  els.sizeSel.innerHTML=order.map(s=>`<option value="${s}"${s===sample?" selected":""}>${s}</option>`).join("");
+  els.fileInfo.innerHTML=`<b>${M.pieces.length}</b> pieces · size <b>${curSize||"—"}</b>`+(rt?" · .rul loaded":"");
+  els.drop.classList.add("hide");
+  buildEdges(); buildMeshes(); autoSuggest(); fit(); if(show3D&&typeof buildScene3D==="function") buildScene3D();
+}
+els.sizeSel.onchange=()=>{ curSize=els.sizeSel.value; pairs=[]; selEdge=null; selPair=-1; buildEdges(); buildMeshes(); autoSuggest(); fit(); if(show3D&&typeof buildScene3D==="function") buildScene3D(); };
+document.getElementById("meshChk").onchange=e=>{ showMesh=e.target.checked; draw(); };
+function handleFiles(files){
+  const arr=[...files]; const dxf=arr.find(f=>/\.dxf$/i.test(f.name)); const rul=arr.find(f=>/\.rul$/i.test(f.name));
+  const readRul=rul?rul.arrayBuffer().then(b=>{try{return new TextDecoder("gbk").decode(b);}catch(e){return null;}}):Promise.resolve(null);
+  readRul.then(rt=>{ if(!dxf) return; dxf.arrayBuffer().then(buf=>loadModel(parseDXF(buf), rt)); });
+}
+const fileInput=document.getElementById("fileInput");
+document.getElementById("openBtn").onclick=()=>fileInput.click();
+document.getElementById("dropBtn").onclick=()=>fileInput.click();
+fileInput.onchange=e=>handleFiles(e.target.files);
+["dragover","dragenter"].forEach(ev=>main.addEventListener(ev,e=>{e.preventDefault();}));
+main.addEventListener("drop",e=>{e.preventDefault(); handleFiles(e.dataTransfer.files);});
+document.getElementById("autoBtn").onclick=autoSuggest;
+document.getElementById("clearBtn").onclick=()=>{ pairs=[]; selEdge=null; selPair=-1; renderPairs(); draw(); };
+document.getElementById("exportBtn").onclick=()=>{
+  if(!model) return; const blob=new Blob([JSON.stringify(seamMap(),null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="seam-map.json"; a.click();
+};
+addEventListener("mousemove",e=>{ if(!model) return; const r=cv.getBoundingClientRect(); const [mx,my]=s2m(e.clientX-r.left,e.clientY-r.top);
+  els.hud.textContent=`${pairs.length} pairs · ${edges.length} edges · x ${mx.toFixed(0)} y ${my.toFixed(0)}`; });
+
+/* ============================================================
+   Phase 3 — flat 3D scene (three.js)
+   ============================================================ */
+// pure geometry builder (no THREE) so it can be unit-tested headlessly
+function sceneData(){
+  const out=[]; const ids=Object.keys(meshes).map(Number);
+  ids.forEach((i,k)=>{ const m=meshes[i]; if(!m||!m.tris.length) return;
+    let pos;
+    if(placeMode && placed[i]){ pos=placed[i].slice(); }
+    else { pos=new Float32Array(m.verts.length*3);
+      for(let v=0;v<m.verts.length;v++){ pos[v*3]=m.verts[v][0]; pos[v*3+1]=m.verts[v][1]; pos[v*3+2]=0; } }
+    const idx=new Uint32Array(m.tris.length*3);
+    for(let t=0;t<m.tris.length;t++){ idx[t*3]=m.tris[t][0]; idx[t*3+1]=m.tris[t][1]; idx[t*3+2]=m.tris[t][2]; }
+    out.push({piece:i, positions:pos, index:idx, hue:(k*67)%360, verts:m.verts.length, tris:m.tris.length});
+  });
+  return out;
+}
+let TD=null;  // three.js state
+function init3D(){
+  if(TD) return true;
+  if(!window.THREE){ return false; }
+  const r=main.getBoundingClientRect();
+  const ren=new THREE.WebGLRenderer({antialias:true}); ren.setPixelRatio(devicePixelRatio||1);
+  ren.setSize(r.width,r.height); ren.domElement.id="tdcanvas"; main.appendChild(ren.domElement);
+  const scene=new THREE.Scene(); scene.background=new THREE.Color(0x0f1216);
+  const cam=new THREE.PerspectiveCamera(45, r.width/r.height, 1, 100000);
+  scene.add(new THREE.AmbientLight(0xffffff,0.55));
+  const dl=new THREE.DirectionalLight(0xffffff,0.8); dl.position.set(0.4,0.8,1); scene.add(dl);
+  const dl2=new THREE.DirectionalLight(0x88aaff,0.35); dl2.position.set(-0.5,-0.3,-1); scene.add(dl2);
+  const grid=new THREE.GridHelper(2000,20,0x2a323d,0x1b2028); grid.rotation.x=Math.PI/2; scene.add(grid);
+  TD={ren,scene,cam,grid,group:null, az:0.7,pol:1.15,rad:1200,tgt:new THREE.Vector3(),raf:0};
+  addOrbit(ren.domElement);
+  return true;
+}
+function buildScene3D(){
+  if(!TD) return;
+  if(TD.group){ TD.scene.remove(TD.group); TD.group.traverse(o=>{ if(o.geometry)o.geometry.dispose(); if(o.material)o.material.dispose(); }); }
+  const g=new THREE.Group(); const data=sceneData();
+  // center over x,y,z so sim updates can reuse the same offset
+  let cx=0,cy=0,cz=0,n=0; data.forEach(d=>{ for(let v=0;v<d.positions.length;v+=3){ cx+=d.positions[v]; cy+=d.positions[v+1]; cz+=d.positions[v+2]; n++; } });
+  cx/=(n||1); cy/=(n||1); cz/=(n||1);
+  TD.center=[cx,cy,cz]; TD.geos=[];
+  let maxr=1;
+  data.forEach(d=>{ const geo=new THREE.BufferGeometry();
+    const pos=d.positions.slice(); for(let v=0;v<pos.length;v+=3){ pos[v]-=cx; pos[v+1]-=cy; pos[v+2]-=cz; maxr=Math.max(maxr,Math.hypot(pos[v],pos[v+1],pos[v+2])); }
+    geo.setAttribute("position",new THREE.BufferAttribute(pos,3)); geo.setIndex(new THREE.BufferAttribute(d.index,1)); geo.computeVertexNormals();
+    const col=new THREE.Color().setHSL(d.hue/360,0.55,0.55);
+    const mat=new THREE.MeshLambertMaterial({color:col, side:THREE.DoubleSide, flatShading:false});
+    g.add(new THREE.Mesh(geo,mat));
+    TD.geos.push({piece:d.piece, geo});
+    if(!placeMode){ g.add(new THREE.LineSegments(new THREE.WireframeGeometry(geo), new THREE.LineBasicMaterial({color:0x0f1216, transparent:true, opacity:0.25}))); }
+  });
+  TD.scene.add(g); TD.group=g; TD.rad=maxr*2.6; updateCam();
+}
+/* ============================================================
+   Phase 5 — seam stitch relax (position-based, stable)
+   ============================================================ */
+let sim=null;
+function polylineParam(p, vs){ let best=1e18,bestS=0,acc=0;
+  for(let i=0;i<vs.length-1;i++){ const a=vs[i],b=vs[i+1]; const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy)||1e-9,L2=L*L;
+    let t=((p[0]-a[0])*dx+(p[1]-a[1])*dy)/L2; t=Math.max(0,Math.min(1,t));
+    const d=Math.hypot(p[0]-(a[0]+t*dx),p[1]-(a[1]+t*dy)); if(d<best){best=d;bestS=acc+t*L;} acc+=L; }
+  return [bestS,best];
+}
+function edgeChain(pieceIdx, vs){   // ordered mesh boundary-vertex indices lying on this seam edge
+  const m=meshes[pieceIdx]; const bc=m.boundaryCount||m.verts.length; const out=[];
+  for(let vi=0;vi<bc;vi++){ const pr=polylineParam(m.verts[vi], vs); if(pr[1]<MESH_SPACING*0.6) out.push({vi,s:pr[0]}); }
+  out.sort((a,b)=>a.s-b.s); return out.map(o=>o.vi);
+}
+function buildSim(){
+  if(!model) return; computePlaced();
+  const ids=Object.keys(meshes).map(Number).filter(i=>meshes[i]&&meshes[i].tris.length && placed[i]);
+  const off={}; let N=0; ids.forEach(i=>{ off[i]=N; N+=meshes[i].verts.length; });
+  const pos=new Float32Array(N*3);
+  ids.forEach(i=>{ pos.set(placed[i], off[i]*3); });
+  const gidx=(pi,vi)=>off[pi]+vi;
+  // distance constraints from mesh triangle edges (rest = true flat length)
+  const dcon=[]; const seen=new Set();
+  ids.forEach(pi=>{ const m=meshes[pi];
+    m.tris.forEach(t=>{ [[t[0],t[1]],[t[1],t[2]],[t[2],t[0]]].forEach(([a,b])=>{
+      const i=gidx(pi,Math.min(a,b)), j=gidx(pi,Math.max(a,b)); const k=i+"_"+j; if(seen.has(k)) return; seen.add(k);
+      dcon.push([i,j, Math.hypot(m.verts[a][0]-m.verts[b][0], m.verts[a][1]-m.verts[b][1])]); }); }); });
+  // bending constraints: connect the opposite vertices of each pair of triangles that
+  // share an edge (rest = their flat distance) — resists folding, keeps panels from crumpling
+  const bcon=[];
+  ids.forEach(pi=>{ const m=meshes[pi]; const emap=new Map(); const key=(a,b)=>a<b?a+"_"+b:b+"_"+a;
+    m.tris.forEach(t=>{ [[t[0],t[1],t[2]],[t[1],t[2],t[0]],[t[2],t[0],t[1]]].forEach(([a,b,c])=>{
+      const k=key(a,b); if(emap.has(k)){ const c0=emap.get(k);
+        bcon.push([gidx(pi,c0), gidx(pi,c), Math.hypot(m.verts[c0][0]-m.verts[c][0], m.verts[c0][1]-m.verts[c][1])]);
+      } else emap.set(k,c); }); }); });
+  // seam constraints from confirmed/suggested pairs
+  const scon=[]; const dist=(i,j)=>Math.hypot(pos[i*3]-pos[j*3],pos[i*3+1]-pos[j*3+1],pos[i*3+2]-pos[j*3+2]);
+  pairs.forEach(pr=>{ const A=edgeById(pr.a),B=edgeById(pr.b); if(!A||!B) return;
+    const chA=edgeChain(A.piece,A.vs).map(vi=>gidx(A.piece,vi));
+    let chB=edgeChain(B.piece,B.vs).map(vi=>gidx(B.piece,vi));
+    if(chA.length<2||chB.length<2) return;
+    const straight=dist(chA[0],chB[0])+dist(chA[chA.length-1],chB[chB.length-1]);
+    const flip=dist(chA[0],chB[chB.length-1])+dist(chA[chA.length-1],chB[0]);
+    if(flip<straight) chB=chB.slice().reverse();
+    const K=Math.min(chA.length,chB.length);
+    for(let k=0;k<K;k++){ const ia=chA[Math.round(k/(K-1)*(chA.length-1))], ib=chB[Math.round(k/(K-1)*(chB.length-1))]; scon.push([ia,ib]); }
+  });
+  sim={pos, dcon, bcon, scon, off, ids, progress:0, running:false, seamGap:0,
+       mode:"stitch", prev:null, pin:{}, body:null, gravity:2.0};
+  return sim;
+}
+function proj(P,i,j,rest,stiff){ const ix=i*3,jx=j*3; let dx=P[jx]-P[ix],dy=P[jx+1]-P[ix+1],dz=P[jx+2]-P[ix+2];
+  let d=Math.hypot(dx,dy,dz)||1e-6; const s=((d-rest)/d)*0.5*stiff; P[ix]+=dx*s;P[ix+1]+=dy*s;P[ix+2]+=dz*s; P[jx]-=dx*s;P[jx+1]-=dy*s;P[jx+2]-=dz*s; }
+function simStep(iters){
+  if(!sim) return; const P=sim.pos;
+  sim.progress=Math.min(1, sim.progress+0.012);
+  const seamStiff=0.15+0.55*sim.progress;
+  for(let it=0; it<(iters||6); it++){
+    for(const c of sim.dcon) proj(P,c[0],c[1],c[2],1.0);
+    for(const c of sim.bcon) proj(P,c[0],c[1],c[2],0.25);
+    for(const c of sim.scon) proj(P,c[0],c[1],0,seamStiff);
+  }
+  // report average seam gap
+  let g=0; for(const c of sim.scon){ g+=Math.hypot(P[c[0]*3]-P[c[1]*3],P[c[0]*3+1]-P[c[1]*3+1],P[c[0]*3+2]-P[c[1]*3+2]); }
+  sim.seamGap = sim.scon.length? g/sim.scon.length : 0;
+}
+function updateGeoFromSim(){
+  if(!sim||!TD||!TD.geos) return; const c=TD.center;
+  TD.geos.forEach(entry=>{ const base=sim.off[entry.piece]; if(base==null) return;
+    const arr=entry.geo.attributes.position.array; const cnt=arr.length/3;
+    for(let v=0;v<cnt;v++){ arr[v*3]=sim.pos[(base+v)*3]-c[0]; arr[v*3+1]=sim.pos[(base+v)*3+1]-c[1]; arr[v*3+2]=sim.pos[(base+v)*3+2]-c[2]; }
+    entry.geo.attributes.position.needsUpdate=true; entry.geo.computeVertexNormals();
+  });
+}
+function startStitch(){
+  if(!show3D){ placeMode=true; document.getElementById("placeChk").checked=true; set3D(true); }
+  else if(!placeMode){ placeMode=true; document.getElementById("placeChk").checked=true; buildScene3D(); }
+  if(!sim) buildSim(); buildScene3D(); sim.running=true;
+  document.getElementById("sewInfo").textContent="Sewing… "+sim.scon.length+" seam links";
+}
+function resetStitch(){ buildSim(); buildScene3D(); updateGeoFromSim();
+  const el=document.getElementById("sewInfo"); if(el) el.textContent="Reset to placed pose."; }
+
+/* ============================================================
+   Phase 6 — parametric body form + gravity drape
+   ============================================================ */
+// A profile-fitted form: sample the (clean) placed layout into K horizontal rings,
+// each with its own centre and radius, so the body hugs the garment cross-section at
+// every height. Cloth then rests on it along its whole length instead of collapsing.
+function buildBody(){
+  const ids=Object.keys(placed).map(Number).filter(i=>placed[i]);
+  let y0=1e9,y1=-1e9; ids.forEach(i=>{const p=placed[i];for(let v=1;v<p.length;v+=3){if(p[v]<y0)y0=p[v];if(p[v]>y1)y1=p[v];}});
+  const K=18, H=(y1-y0)||1, rings=[];
+  for(let s=0;s<=K;s++){ const yc=y0+s/K*H, lo=yc-H/K, hi=yc+H/K;
+    let sx=0,sz=0,n=0; ids.forEach(i=>{const p=placed[i];for(let v=0;v<p.length;v+=3){const y=p[v+1];if(y>=lo&&y<hi){sx+=p[v];sz+=p[v+2];n++;}}});
+    const cx=n?sx/n:0, cz=n?sz/n:0, rs=[];
+    ids.forEach(i=>{const p=placed[i];for(let v=0;v<p.length;v+=3){const y=p[v+1];if(y>=lo&&y<hi){rs.push(Math.hypot(p[v]-cx,p[v+2]-cz));}}});
+    rs.sort((a,b)=>a-b); rings.push({y:yc, cx, cz, r: rs.length? rs[Math.floor(rs.length*0.5)]*0.9 : 0, n});
+  }
+  // fill empty rings from nearest populated neighbour
+  for(let s=0;s<rings.length;s++){ if(rings[s].n===0){ let a=s,b=s; while(a>=0&&rings[a].n===0)a--; while(b<rings.length&&rings[b].n===0)b++;
+    const src=(a>=0)?rings[a]:(b<rings.length?rings[b]:null); if(src){ rings[s].cx=src.cx; rings[s].cz=src.cz; rings[s].r=src.r; } } }
+  sim.body={y0,y1,H,K,rings};
+}
+function bodyAt(y){ const b=sim.body; let t=(y-b.y0)/(b.H||1); t=Math.max(0,Math.min(0.999,t))*b.K;
+  const i=Math.floor(t), f=t-i, a=b.rings[i], c=b.rings[Math.min(b.K,i+1)];
+  return {cx:a.cx+(c.cx-a.cx)*f, cz:a.cz+(c.cz-a.cz)*f, r:a.r+(c.r-a.r)*f}; }
+function collide(P,i){ const b=sim.body; if(!b) return; const y=P[i*3+1]; if(y<b.y0||y>b.y1) return;
+  const ring=bodyAt(y); if(ring.r<=0) return; const x=P[i*3]-ring.cx, z=P[i*3+2]-ring.cz, rr=Math.hypot(x,z);
+  if(rr<ring.r && rr>1e-6){ const s=ring.r/rr; P[i*3]=ring.cx+x*s; P[i*3+2]=ring.cz+z*s; } }
+function setPins(){
+  const P=sim.pos; let y0=1e9,y1=-1e9; for(let i=1;i<P.length;i+=3){ if(P[i]>y1)y1=P[i]; if(P[i]<y0)y0=P[i]; }
+  const thr=y1-(y1-y0)*0.06; sim.pin={}; const N=P.length/3;
+  for(let i=0;i<N;i++){ if(P[i*3+1]>=thr) sim.pin[i]=[P[i*3],P[i*3+1],P[i*3+2]]; }
+}
+function simStepDrape(){
+  const P=sim.pos, prev=sim.prev, g=sim.gravity, N=P.length/3, damp=0.94;
+  for(let i=0;i<N;i++){ if(sim.pin[i]) continue; const ix=i*3; const px=P[ix],py=P[ix+1],pz=P[ix+2];
+    P[ix]+=(px-prev[ix])*damp; P[ix+1]+=(py-prev[ix+1])*damp - g; P[ix+2]+=(pz-prev[ix+2])*damp;
+    prev[ix]=px; prev[ix+1]=py; prev[ix+2]=pz; }
+  for(let it=0;it<11;it++){
+    for(const c of sim.dcon) proj(P,c[0],c[1],c[2],1.0);
+    for(const c of sim.bcon) proj(P,c[0],c[1],c[2],0.35);
+    for(const c of sim.scon) proj(P,c[0],c[1],0,0.7);
+    for(let i=0;i<N;i++) collide(P,i);
+    for(const k in sim.pin){ const a=sim.pin[k]; P[k*3]=a[0]; P[k*3+1]=a[1]; P[k*3+2]=a[2]; }
+  }
+}
+function addBodyMesh(){
+  if(!TD||!sim.body||!sim.body.rings) return;
+  if(TD.bodyMesh){ TD.group.remove(TD.bodyMesh); TD.bodyMesh.geometry&&TD.bodyMesh.geometry.dispose(); TD.bodyMesh=null; }
+  const b=sim.body, c=TD.center, SEG=24; const rings=b.rings.filter(r=>r.r>0);
+  if(rings.length<2) return;
+  const pos=[], idx=[];
+  rings.forEach(r=>{ for(let j=0;j<SEG;j++){ const a=j/SEG*2*Math.PI; pos.push(r.cx+r.r*Math.cos(a)-c[0], r.y-c[1], r.cz+r.r*Math.sin(a)-c[2]); } });
+  for(let s=0;s<rings.length-1;s++){ for(let j=0;j<SEG;j++){ const j2=(j+1)%SEG,
+      A=s*SEG+j, B=s*SEG+j2, C=(s+1)*SEG+j, D=(s+1)*SEG+j2; idx.push(A,C,B, B,C,D); } }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); geo.setIndex(idx); geo.computeVertexNormals();
+  const mat=new THREE.MeshLambertMaterial({color:0x9aa4b2, transparent:true, opacity:0.3, side:THREE.DoubleSide});
+  const mesh=new THREE.Mesh(geo,mat); TD.group.add(mesh); TD.bodyMesh=mesh;
+}
+function startDrape(){
+  if(!show3D || !placeMode){ placeMode=true; document.getElementById("placeChk").checked=true; set3D(true); }
+  if(!sim) buildSim();
+  // close the seams first (sew), then set up the body + gravity
+  sim.mode="stitch"; sim.progress=0; sim.running=false;
+  for(let f=0; f<170; f++) simStep(6);
+  buildBody(); setPins(); sim.prev=sim.pos.slice(); sim.gravity=0.5; sim.mode="drape"; sim.running=true;
+  buildScene3D(); addBodyMesh();
+  document.getElementById("sewInfo").textContent="Draping on the form…";
+}
+
+function updateCam(){ if(!TD) return; const {cam,tgt,rad,az,pol}=TD;
+  cam.position.set(tgt.x+rad*Math.sin(pol)*Math.sin(az), tgt.y+rad*Math.cos(pol), tgt.z+rad*Math.sin(pol)*Math.cos(az));
+  cam.lookAt(tgt); }
+function addOrbit(dom){
+  let dragging=false,lx=0,ly=0;
+  dom.addEventListener("mousedown",e=>{dragging=true;lx=e.clientX;ly=e.clientY;});
+  addEventListener("mouseup",()=>dragging=false);
+  addEventListener("mousemove",e=>{ if(!dragging||!TD) return; TD.az-=(e.clientX-lx)*0.01; TD.pol=Math.max(0.15,Math.min(Math.PI-0.15,TD.pol-(e.clientY-ly)*0.01)); lx=e.clientX;ly=e.clientY; updateCam(); });
+  dom.addEventListener("wheel",e=>{ e.preventDefault(); if(!TD) return; TD.rad*=e.deltaY<0?1/1.1:1.1; updateCam(); },{passive:false});
+}
+function animate3D(){ if(!TD||!show3D) return; TD.raf=requestAnimationFrame(animate3D);
+  if(sim&&sim.running){
+    if(sim.mode==="drape") simStepDrape(); else simStep(6);
+    updateGeoFromSim();
+    const el=document.getElementById("sewInfo");
+    if(el) el.textContent = sim.mode==="drape" ? "Draping on the form…" : ("Sewing… avg seam gap "+sim.seamGap.toFixed(0)+" mm ("+(sim.progress*100|0)+"%)");
+  }
+  TD.ren.render(TD.scene,TD.cam); }
+let show3D=false;
+function set3D(on){
+  if(on && !init3D()){ alert("3D engine (three.js) failed to load — check your connection."); document.getElementById("v2d").click(); return; }
+  show3D=on;
+  document.getElementById("v2d").classList.toggle("on",!on);
+  document.getElementById("v3d").classList.toggle("on",on);
+  cv.style.display=on?"none":"block";
+  if(TD) TD.ren.domElement.style.display=on?"block":"none";
+  if(on){ if(model){ buildMeshes(); buildScene3D(); } resize3D(); animate3D(); }
+  else { cancelAnimationFrame(TD?TD.raf:0); }
+}
+function resize3D(){ if(!TD) return; const r=main.getBoundingClientRect(); TD.cam.aspect=r.width/r.height; TD.cam.updateProjectionMatrix(); TD.ren.setSize(r.width,r.height); }
+document.getElementById("v2d").onclick=()=>set3D(false);
+document.getElementById("v3d").onclick=()=>set3D(true);
+document.getElementById("placeChk").onchange=e=>{ placeMode=e.target.checked; if(sim)sim.running=false; sim=null;
+  if(placeMode && !show3D) set3D(true);      // placement only makes sense in 3D
+  else if(TD&&show3D){ buildScene3D(); }
+};
+document.getElementById("sewBtn").onclick=startStitch;
+document.getElementById("drapeBtn").onclick=startDrape;
+document.getElementById("sewReset").onclick=resetStitch;
+addEventListener("resize",resize3D);
+
+resize();
+// expose for headless testing
+window.__spike={ get model(){return model;}, get edges(){return edges;}, get pairs(){return pairs;}, get meshes(){return meshes;}, get placed(){return placed;}, get sim(){return sim;},
+  loadModel, buildEdges, buildMeshes, autoSuggest, segmentEdges, seamMap, sceneData, buildSim, simStep, simStepDrape, buildBody, setPins, computePlaced,
+  set placeMode(v){placeMode=v;}, setSize:s=>{curSize=s;buildEdges();buildMeshes();} , parseDXF };
+</script>
+</body></html>

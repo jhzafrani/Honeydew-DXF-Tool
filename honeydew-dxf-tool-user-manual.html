@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Honeydew · DXF Tool — User Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1c1a17; --muted:#8a8175; --line:#e8e2d8; --bg:#f6f3ee; --paper:#fffdf9;
+  --green:#3a6b52; --gold:#b3894e; --accent:#3a6b52;
+  --serif:"Cormorant Garamond","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.62;font-size:15px;
+  background-image:radial-gradient(circle at 50% -8%, #fdfbf6 0%, var(--bg) 46%)}
+.wrap{max-width:880px;margin:0 auto;padding:0 26px 90px}
+/* masthead */
+.mast{text-align:center;padding:56px 0 30px;margin-bottom:20px}
+.mast .wm{color:var(--ink);line-height:0}
+.mast .wm svg{height:46px;width:auto;max-width:min(420px,80%);display:inline-block}
+.mast .rule{width:70px;height:1px;background:var(--gold);margin:20px auto 16px}
+.mast .eyebrow{font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.mast h1{font-family:var(--serif);font-weight:500;font-size:40px;letter-spacing:.01em;margin:8px 0 6px;font-style:italic}
+.mast .sub{color:var(--muted);font-size:14.5px;letter-spacing:.02em}
+/* headings */
+h2{font-family:var(--serif);font-weight:600;font-size:30px;letter-spacing:.01em;margin:52px 0 6px;
+  padding-top:22px;border-top:1px solid var(--line);display:flex;align-items:baseline;gap:12px}
+h2 .n{font-size:14px;font-family:var(--sans);font-weight:600;color:var(--gold);letter-spacing:.12em;
+  border:1px solid var(--gold);border-radius:50%;width:30px;height:30px;min-width:30px;display:inline-flex;
+  align-items:center;justify-content:center;line-height:1}
+h3{font-family:var(--serif);font-weight:600;font-size:20px;margin:24px 0 4px;color:#2a2721}
+p{margin:9px 0}
+a{color:var(--green);text-underline-offset:2px}
+b{font-weight:600}
+code,kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#efeae1;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px}
+kbd{background:#2a2721;color:#f6f3ee;border-color:#2a2721}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:16px 0;box-shadow:0 1px 2px rgba(28,26,23,.04)}
+.access{background:linear-gradient(180deg,#f2f7f3,#fffdf9);border-color:#cfe2d4}
+.access b{font-family:var(--serif);font-size:19px;font-weight:600}
+.fig{background:#0f1216;border-radius:14px;padding:18px;margin:18px 0;border:1px solid #23282f}
+.figcap{color:var(--muted);font-size:12.5px;margin:8px 2px 0;font-style:italic}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13.5px;background:var(--paper);
+  border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th,td{border-bottom:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+tr:last-child td{border-bottom:none}
+th{background:#efeae1;font-family:var(--sans);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#6a6154}
+td.num{width:34px;text-align:center;font-weight:600;color:#fff;background:var(--green)}
+td.num.sg{background:var(--gold)}
+td.btn{white-space:nowrap;width:120px}
+ol,ul{margin:8px 0 8px 22px}
+li{margin:5px 0}
+.tip{background:#f3f7f4;border:1px solid #cfe2d4;border-left:3px solid var(--green);border-radius:8px;padding:12px 16px;margin:14px 0;font-size:14px}
+.tip::before{content:"Tip · ";font-family:var(--serif);font-style:italic;color:var(--green);font-weight:600}
+.warn{background:#faf3ea;border:1px solid #ecd9bd;border-left:3px solid var(--gold);border-radius:8px;padding:12px 16px;margin:14px 0;font-size:14px}
+.warn::before{content:"Note · ";font-family:var(--serif);font-style:italic;color:var(--gold);font-weight:600}
+.kbds td{font-size:14px}
+.toc{columns:2;column-gap:26px}
+.toc b{font-family:var(--serif);font-size:17px;display:block;margin-bottom:6px;column-span:all}
+.toc a{display:block;padding:4px 0;text-decoration:none;color:var(--ink);font-size:14px;border-bottom:1px dotted var(--line)}
+.toc a:hover{color:var(--green)}
+@media print{body{background:#fff;background-image:none}.wrap{max-width:100%}.card{box-shadow:none}}
+</style></head>
+<body><div class="wrap">
+<div class="mast">
+  <div class="wm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1161.58 143.8" fill="currentColor" role="img" aria-label="Honeydew"><path d="M237.85,343v54c0,30.2,6.6,40.8,16,41v2.2h-46.4V438c9.4-.2,16-10.8,16-41V370h-76.6v27c0,30.2,6.6,40.8,16,41v2.2H116.46V438c9.39-.2,16-10.8,16-41V343c0-30.2-6.6-40.8-16-41v-2.2h46.39V302c-9.4.2-16,10.8-16,41v21.6h76.6V343c0-30.2-6.6-40.8-16-41v-2.2h46.4V302C244.45,302.17,237.85,312.77,237.85,343Z" transform="translate(-116.46 -298.37)"/><path d="M263.85,370c0-42,29.2-71.6,70.4-71.6s70.2,29.6,70.2,71.6c0,42.2-29,72.2-70.2,72.2S263.85,412.17,263.85,370Zm120.6,0c0-41.2-18.6-65.6-50.2-65.6s-50.4,24.4-50.4,65.6c0,41.6,18.8,66.2,50.4,66.2S384.45,411.57,384.45,370Z" transform="translate(-116.46 -298.37)"/><path d="M556.65,300.17v2.2c-11.4.2-20,10.8-20,41v96.8h-5.4l-91.4-121.4V397c0,30.2,8.6,40.8,20,41v2.2h-45.4V438c11.4-.2,20-10.8,20-41v-53.6c0-30.2-6.6-40.8-16-41v-2.2h17.8c6.4,0,10.8,2.4,14.6,7.4l73,98c3.4,4.6,7.4,3.2,7.4-2.4v-59.8c0-30.2-8.6-40.8-20-41v-2.2Z" transform="translate(-116.46 -298.37)"/><path d="M686.85,412.37l-8,18.6c-2.6,6.2-7.2,9.2-14,9.2h-94.2V438c9.4-.2,16-10.8,16-41v-53.6c0-30.2-6.6-40.8-16-41v-2.2h86.2c6.8,0,11.4,3,14,9.2l8,18.6h-2.2c-4.2-9.2-23.2-21.8-50.6-21.8h-2c-20.4,0-23,8-23,37.2v21.2h25.8c24.2,0,27.2-6.4,27.2-14.2h2.2v33.8h-2.2c.2-7.4-3.4-14.2-27.6-14.2h-25.4v27c0,29.2,2.6,37.2,23,37.2h10.8c27,0,45.8-12.4,49.8-21.8Z" transform="translate(-116.46 -298.37)"/><path d="M815.84,300.17v2.2c-7.4.2-20.2,11-28.6,28l-26.4,52.8V397c0,30.2,6.6,40.8,16,41v2.2h-46.4V438c9.4-.2,16-10.8,16-41v-12.8l-28.4-54c-9-17-22.4-27.6-28-27.8l-.2-2.2H730l.2,2.2c-7,.2-6.8,11.2,2,28l20.2,38.6c2.6,5,6.6,5,9.2,0l19.8-38.6c8.6-16.8,7.8-27.8,1.4-28v-2.2Z" transform="translate(-116.46 -298.37)"/><path d="M884.24,440.17h-53.4V438c9.4-.2,16-10.8,16-41v-53.6c0-30.2-6.6-40.8-16-41v-2.2h53.4c43,0,73.4,28.8,73.4,69.6C957.64,411,927.24,440.17,884.24,440.17Zm53.4-70.4c0-40-19.2-63.6-51.6-63.6h-1.8c-20.4,0-23,8-23,37.2V397c0,29.2,2.6,37.2,23,37.2H886C918.44,434.17,937.64,410.17,937.64,369.77Z" transform="translate(-116.46 -298.37)"/><path d="M1086.84,412.37l-8,18.6c-2.6,6.2-7.2,9.2-14,9.2h-94.2V438c9.4-.2,16-10.8,16-41v-53.6c0-30.2-6.6-40.8-16-41v-2.2h86.2c6.8,0,11.4,3,14,9.2l8,18.6h-2.2c-4.2-9.2-23.2-21.8-50.6-21.8h-2c-20.4,0-23,8-23,37.2v21.2h25.8c24.2,0,27.2-6.4,27.2-14.2h2.2v33.8H1054c.2-7.4-3.4-14.2-27.6-14.2H1001v27c0,29.2,2.6,37.2,23,37.2h10.8c27,0,45.8-12.4,49.8-21.8Z" transform="translate(-116.46 -298.37)"/><path d="M1186.44,343.37l27.4,66.2c2.2,6,7.2,6,9.2-.2l24.6-74c7.2-22.2,4-32.8-2.6-33v-2.2h33v2.2c-9.4.2-16.8,10.8-24.2,33l-35.4,104.8h-5.8l-28.8-74-27.4,74h-5.8l-37.8-104.8c-8-22.4-18.6-32.8-24-33v-2.2H1129v2.2c-7,.2-9.4,10.8-1.8,33l25.6,74.2c2.2,6.2,7,6.2,9.2,0l18.8-50.8" transform="translate(-116.46 -298.37)"/></svg></div>
+  <div class="rule"></div>
+  <div class="eyebrow">Technical Tools</div>
+  <h1>The DXF Tool</h1>
+  <div class="sub">User manual · apparel pattern (AAMA/ASTM) viewer, measuring &amp; annotation</div>
+</div>
+
+<div class="card access">
+  <b>Where to find it</b><br>
+  Web app: <a href="https://honeydew-dxf-tool.netlify.app/">https://honeydew-dxf-tool.netlify.app/</a><br>
+  Site password: <code>HoneydewTools2026</code><br>
+  <span style="color:var(--muted);font-size:13px">Works in any modern browser. Install &amp; “open a .dxf directly” features need Chrome or Edge (see §8).</span>
+</div>
+
+<div class="card toc">
+  <b>Contents</b>
+  <a href="#start">1 · Getting started</a>
+  <a href="#toolbar">2 · The toolbar (button‑by‑button)</a>
+  <a href="#sidebar">3 · The sidebar</a>
+  <a href="#measure">4 · Measuring &amp; the ruler tool</a>
+  <a href="#annotate">5 · Annotations</a>
+  <a href="#grade">6 · Grade nest &amp; grade vectors</a>
+  <a href="#qc">7 · Quality checks &amp; exports</a>
+  <a href="#install">8 · Install as an app &amp; open .dxf directly</a>
+  <a href="#saving">9 · Saving, tabs &amp; comparing revisions</a>
+  <a href="#keys">10 · Keyboard shortcuts</a>
+  <a href="#tips">11 · Tips &amp; tricks</a>
+  <a href="#notes">12 · Notes &amp; limits</a>
+</div>
+
+<h2 id="start"><span class="n">1</span> Getting started</h2>
+<p>The DXF Tool opens apparel pattern files exported in the <b>AAMA/ASTM</b> (ANSI/AAMA‑DXF) format and lets you view, measure, quality‑check and annotate them right in the browser — nothing to install (though you can, see §8). This section gets you from a blank window to a pattern on screen.</p>
+
+<h3>Open the tool</h3>
+<ol>
+  <li>Go to <a href="https://honeydew-dxf-tool.netlify.app/">https://honeydew-dxf-tool.netlify.app/</a> in Chrome, Edge, Safari or Firefox.</li>
+  <li>When prompted, enter the site password <code>HoneydewTools2026</code>. You’ll land on an empty canvas with a “Drop an apparel DXF here” message.</li>
+</ol>
+
+<h3>Load a pattern file</h3>
+<ol>
+  <li>Click <b>📂 Open</b> in the toolbar (or drag files straight onto the window, or click <b>Choose file…</b> in the drop zone).</li>
+  <li>Select one or more <code>.dxf</code> pattern files. To get full size information, also select the matching <code>.rul</code> grade‑rule file in the same dialog — the tool pairs it with the DXF automatically.</li>
+  <li>The pattern draws in the canvas and the left sidebar fills in: the file name and a materials summary at the top, then the list of pieces below.</li>
+</ol>
+<div class="tip">You can add the <code>.rul</code> later, too: just drag it onto the window while the pattern is open. The sidebar hint updates to “.rul grade table loaded” and size‑aware features (grade nest, size order, grade‑rules export) switch on.</div>
+<div class="tip">The tool reads AAMA/ASTM apparel DXFs and also plain CAD DXFs (geometry in the ENTITIES section, named layers like CUT / NET / GRAIN). If a file declares its units in the header (<code>$INSUNITS</code> — e.g. inches), the tool <b>scales it correctly and switches the unit selector to match</b>, so measurements read true. Files with no unit header are assumed to be in millimetres.</div>
+
+<h3>Move around the pattern</h3>
+<ol>
+  <li><b>Zoom</b> — scroll the mouse wheel (or pinch on a trackpad). Zoom centers on the cursor, so point at what you want to inspect before scrolling. The zoom step is intentionally gentle for fine control.</li>
+  <li><b>Pan</b> — with the <b>✥ Pan</b> tool active (the default), press and drag anywhere on the canvas.</li>
+  <li><b>Fit</b> — click <b>⤢ Fit</b> (or press <kbd>F</kbd>) at any time to frame the current piece or selection; click <b>▦ All</b> to frame every piece in the file.</li>
+  <li>The bottom‑left readout always shows the cursor’s <b>x / y</b> position and the current <b>zoom %</b>.</li>
+</ol>
+
+<h3>Work with several files at once</h3>
+<p>Each DXF opens in its own <b>tab</b> across the top of the canvas. Click a tab to switch; click the <b>✕</b> on a tab to close it (you’ll be asked to save if it has unsaved changes). The <b>+</b> button opens another file. Having two revisions open side‑by‑side powers the <b>Compare</b> overlay (see §9).</p>
+
+<div class="tip">The pattern colors tell you what each line is: <b>white</b> = cut line, <b>blue dashed</b> = sew/seam line, <b>green</b> = grain line, <b>purple</b> = fold/internal, plus smaller marks for seam/internal points, <b>yellow</b> notches and <b>red</b> drill holes. Turn any layer on or off in the <b>Layers</b> panel of the sidebar.</div>
+
+<h2 id="toolbar"><span class="n">2</span> The toolbar (button‑by‑button)</h2>
+<p>The toolbar runs across the top of the window. Numbers below match the reference table.</p>
+<div class="fig"><svg viewBox="0 0 780 318" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,Segoe UI,Roboto,sans-serif"><rect x="0" y="0" width="780" height="318" rx="10" fill="#171b22"/><rect x="93.4" y="12" width="1.4" height="26" fill="#2a323d"/><rect x="258.6" y="12" width="1.4" height="26" fill="#2a323d"/><rect x="454.20000000000005" y="12" width="1.4" height="26" fill="#2a323d"/><rect x="716" y="12" width="1.4" height="26" fill="#2a323d"/><rect x="152" y="74" width="1.4" height="26" fill="#2a323d"/><rect x="252" y="74" width="1.4" height="26" fill="#2a323d"/><rect x="647.9999999999999" y="136" width="1.4" height="26" fill="#2a323d"/><rect x="279" y="198" width="1.4" height="26" fill="#2a323d"/><rect x="10" y="16" width="75.4" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="21" y="36" font-size="14" fill="#e6eaf0">📂 Open</text><circle cx="8" cy="14" r="9" fill="#4c9aff"/><text x="8" y="18" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text><rect x="101.4" y="16" width="67.8" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="112.4" y="36" font-size="14" fill="#e6eaf0">✥ Pan</text><circle cx="99.4" cy="14" r="9" fill="#4c9aff"/><text x="99.4" y="18" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text><rect x="175.2" y="16" width="75.4" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="186.2" y="36" font-size="14" fill="#e6eaf0">✋ Move</text><circle cx="173.2" cy="14" r="9" fill="#4c9aff"/><text x="173.2" y="18" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text><rect x="266.6" y="16" width="98.19999999999999" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="277.6" y="36" font-size="14" fill="#e6eaf0">📏 Measure</text><circle cx="264.6" cy="14" r="9" fill="#4c9aff"/><text x="264.6" y="18" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">4</text><rect x="370.8" y="16" width="75.4" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="381.8" y="36" font-size="14" fill="#e6eaf0">〰 Seam</text><circle cx="368.8" cy="14" r="9" fill="#4c9aff"/><text x="368.8" y="18" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">5</text><rect x="462.20000000000005" y="16" width="83" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="473.20000000000005" y="36" font-size="14" fill="#e6eaf0">📌 Point</text><circle cx="460.20000000000005" cy="14" r="9" fill="#4c9aff"/><text x="460.20000000000005" y="18" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">6</text><rect x="551.2" y="16" width="83" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="562.2" y="36" font-size="14" fill="#e6eaf0">↗ Arrow</text><circle cx="549.2" cy="14" r="9" fill="#4c9aff"/><text x="549.2" y="18" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">7</text><rect x="640.2" y="16" width="67.8" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="651.2" y="36" font-size="14" fill="#e6eaf0">▭ Box</text><circle cx="638.2" cy="14" r="9" fill="#4c9aff"/><text x="638.2" y="18" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">8</text><rect x="10" y="78" width="67.8" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="21" y="98" font-size="14" fill="#e6eaf0">🧵 Sew</text><circle cx="8" cy="76" r="9" fill="#4c9aff"/><text x="8" y="80" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">9</text><rect x="83.8" y="78" width="60.2" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="94.8" y="98" font-size="14" fill="#e6eaf0">🪡 3D</text><circle cx="81.8" cy="76" r="9" fill="#4c9aff"/><text x="81.8" y="80" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">10</text><rect x="160" y="78" width="39" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="171" y="98" font-size="14" fill="#e6eaf0">↶</text><circle cx="158" cy="76" r="9" fill="#4c9aff"/><text x="158" y="80" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">11</text><rect x="205" y="78" width="39" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="216" y="98" font-size="14" fill="#e6eaf0">↷</text><circle cx="203" cy="76" r="9" fill="#4c9aff"/><text x="203" y="80" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">12</text><rect x="10" y="140" width="67.8" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="21" y="160" font-size="14" fill="#e6eaf0">⤢ Fit</text><circle cx="8" cy="138" r="9" fill="#4c9aff"/><text x="8" y="142" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">13</text><rect x="83.8" y="140" width="67.8" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="94.8" y="160" font-size="14" fill="#e6eaf0">▦ All</text><circle cx="81.8" cy="138" r="9" fill="#4c9aff"/><text x="81.8" y="142" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">14</text><rect x="157.6" y="140" width="75.4" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="168.6" y="160" font-size="14" fill="#e6eaf0">▤ Nest</text><circle cx="155.6" cy="138" r="9" fill="#4c9aff"/><text x="155.6" y="142" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">15</text><rect x="239" y="140" width="83" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="250" y="160" font-size="14" fill="#e6eaf0">↗ Grade</text><circle cx="237" cy="138" r="9" fill="#4c9aff"/><text x="237" y="142" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">16</text><rect x="328" y="140" width="60.2" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="339" y="160" font-size="14" fill="#e6eaf0">⌷ SA</text><circle cx="326" cy="138" r="9" fill="#4c9aff"/><text x="326" y="142" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">17</text><rect x="394.2" y="140" width="60.2" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="405.2" y="160" font-size="14" fill="#e6eaf0">✔ QC</text><circle cx="392.2" cy="138" r="9" fill="#4c9aff"/><text x="392.2" y="142" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">18</text><rect x="460.4" y="140" width="67.8" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="471.4" y="160" font-size="14" fill="#e6eaf0">📐 POM</text><circle cx="458.4" cy="138" r="9" fill="#4c9aff"/><text x="458.4" y="142" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">19</text><rect x="534.1999999999999" y="140" width="105.8" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="545.1999999999999" y="160" font-size="14" fill="#e6eaf0">🔢 Measures</text><circle cx="532.1999999999999" cy="138" r="9" fill="#4c9aff"/><text x="532.1999999999999" y="142" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">20</text><rect x="10" y="202" width="75.4" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="21" y="222" font-size="14" fill="#e6eaf0">⊞ Grid</text><circle cx="8" cy="200" r="9" fill="#4c9aff"/><text x="8" y="204" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">21</text><rect x="91.4" y="202" width="90.6" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="102.4" y="222" font-size="14" fill="#e6eaf0">📏 Rulers</text><circle cx="89.4" cy="200" r="9" fill="#4c9aff"/><text x="89.4" y="204" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">22</text><rect x="188" y="202" width="83" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="199" y="222" font-size="14" fill="#e6eaf0">⇥ Ruler</text><circle cx="186" cy="200" r="9" fill="#4c9aff"/><text x="186" y="204" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">23</text><rect x="10" y="264" width="67.8" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="21" y="284" font-size="14" fill="#e6eaf0">🖼 PNG</text><circle cx="8" cy="262" r="9" fill="#4c9aff"/><text x="8" y="266" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">24</text><rect x="83.8" y="264" width="67.8" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="94.8" y="284" font-size="14" fill="#e6eaf0">📄 PDF</text><circle cx="81.8" cy="262" r="9" fill="#4c9aff"/><text x="81.8" y="266" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">25</text><rect x="157.6" y="264" width="75.4" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="168.6" y="284" font-size="14" fill="#e6eaf0">📊 Spec</text><circle cx="155.6" cy="262" r="9" fill="#4c9aff"/><text x="155.6" y="266" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">26</text><rect x="239" y="264" width="83" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="250" y="284" font-size="14" fill="#e6eaf0">🧮 Yield</text><circle cx="237" cy="262" r="9" fill="#4c9aff"/><text x="237" y="266" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">27</text><rect x="328" y="264" width="113.39999999999999" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="339" y="284" font-size="14" fill="#e6eaf0">📋 Tech Pack</text><circle cx="326" cy="262" r="9" fill="#4c9aff"/><text x="326" y="266" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">28</text><rect x="447.4" y="264" width="67.8" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="458.4" y="284" font-size="14" fill="#e6eaf0">🖨 1:1</text><circle cx="445.4" cy="262" r="9" fill="#4c9aff"/><text x="445.4" y="266" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">29</text><rect x="521.2" y="264" width="105.8" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="532.2" y="284" font-size="14" fill="#e6eaf0">💾 Save DXF</text><circle cx="519.2" cy="262" r="9" fill="#4c9aff"/><text x="519.2" y="266" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">30</text><rect x="633" y="264" width="98.19999999999999" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="644" y="284" font-size="14" fill="#e6eaf0">💾 Save As</text><circle cx="631" cy="262" r="9" fill="#4c9aff"/><text x="631" y="266" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">31</text><rect x="737.2" y="264" width="98.19999999999999" height="30" rx="7" fill="#1e242d" stroke="#2a323d"/><text x="748.2" y="284" font-size="14" fill="#e6eaf0">⤓ Install</text><circle cx="735.2" cy="262" r="9" fill="#4c9aff"/><text x="735.2" y="266" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">32</text><text x="10" y="310" font-size="12" fill="#8a94a3">Units selector (mm · cm · inch) sits at the far right of the real toolbar → callout 33</text></svg></div>
+<table>
+<thead><tr><th>#</th><th>Button</th><th>What it does</th></tr></thead>
+<tbody><tr><td class="num">1</td><td class="btn"><b>📂 Open</b></td><td>Open one or more .dxf files (plus an optional .rul grade table). On Chrome/Edge this uses a picker that also enables true in‑place Save.</td></tr><tr><td class="num">2</td><td class="btn"><b>✥ Pan</b></td><td>Move around the pattern; click an annotation or ruler to select it. Shortcut V.</td></tr><tr><td class="num">3</td><td class="btn"><b>✋ Move</b></td><td>Rearrange pieces on the artboard — drag any piece and green alignment guides snap its edges, centres and notches to the neighbouring pieces (e.g. line up a front and back at the armhole). Click a piece to select it and a small control floats next to its bounding box — <b>⟲ ⟳</b> rotate the piece 90°, and <b>⇄ ⇅</b> flip it left↔right / top↕bottom (handy for measuring or aligning a mirrored piece). For <b>free transform</b>, turn off the <b>🧲</b> snap toggle (or hold <b>Alt</b>) to drag with no snapping, and drag the round handle above the piece to rotate to any angle (hold <b>Shift</b> for 15° steps). Pieces show in a translucent onion‑skin tint so an overlapping piece stays see‑through and you can compare the one underneath (the piece you’re working on is tinted a little stronger). Double‑click a piece to reset its position, rotation and flip. The layout is remembered inside the DXF (original geometry is never altered). Shortcut X.</td></tr><tr><td class="num">4</td><td class="btn"><b>📏 Measure</b></td><td>Click two points to read the straight‑line distance (ΔX/ΔY). Press “📌 Pin” in the readout to keep it as a saved measurement. Shortcut M.</td></tr><tr><td class="num">5</td><td class="btn"><b>〰 Seam</b></td><td>Click two points on the SAME pattern line to measure the length ALONG the curve. Measure a second seam to compare lengths (walk‑the‑seam): shows Seam A/B and their difference with a match/off flag. “⇄ Flip last” picks the other arc. Shortcut S.</td></tr><tr><td class="num">6</td><td class="btn"><b>📌 Point</b></td><td>Drop a point note where you click. Shortcut P.</td></tr><tr><td class="num">7</td><td class="btn"><b>↗ Arrow</b></td><td>Leader arrow: click the anchor, then the target. Shortcut L.</td></tr><tr><td class="num">8</td><td class="btn"><b>▭ Box</b></td><td>Region box: click two opposite corners. Shortcut B.</td></tr><tr><td class="num">9</td><td class="btn"><b>🧵 Sew</b></td><td>Manual seam pairing — click an edge on one piece, then its matching edge on another, to pair them into a seam. Each piece's outline is split into clickable edges at its corners and notches, so seams can be matched notch‑to‑notch. Paired edges get a matching numbered tag and colour, a dashed connector, sew‑direction arrows, and a length readout that flags mismatches. The Seams panel lists them (flip direction with ⇄, delete with ✕). Seam maps are saved in the DXF and drive the 3D sew preview.</td></tr><tr><td class="num">10</td><td class="btn"><b>🪡 3D</b></td><td>3D sew preview (experimental) — drapes the pieces together in 3D using the seam map you built with 🧵 Sew. Pieces start wrapped around a body form and the paired seams stitch together. Drag to orbit, scroll to zoom; ⏸/▶ pause or resume, ↺ Reset restarts the drape, 🧍 Body toggles the body form, ▦ Wire shows the mesh. Pair some seams first, then open it.</td></tr><tr><td class="num">11</td><td class="btn"><b>↶ Undo</b></td><td>Undo the last annotation change (multi‑level, per tab). Ctrl/Cmd+Z.</td></tr><tr><td class="num">12</td><td class="btn"><b>↷ Redo</b></td><td>Redo. Ctrl/Cmd+Shift+Z (or Ctrl+Y).</td></tr><tr><td class="num">13</td><td class="btn"><b>⤢ Fit</b></td><td>Fit the current piece/selection to the window. Shortcut F.</td></tr><tr><td class="num">14</td><td class="btn"><b>▦ All</b></td><td>Show every piece in the file.</td></tr><tr><td class="num">15</td><td class="btn"><b>▤ Nest</b></td><td>Grade nest — overlay all sizes of a piece, colored by size. Click a base piece to isolate it. Shortcut G.</td></tr><tr><td class="num">16</td><td class="btn"><b>↗ Grade</b></td><td>Grade vectors — draw how each grade point grows across sizes (arrow points to the largest size).</td></tr><tr><td class="num">17</td><td class="btn"><b>⌷ SA</b></td><td>Seam‑allowance check — select a piece first; dots the sew line green (in tolerance) / red (off) and reports typical/min/max.</td></tr><tr><td class="num">18</td><td class="btn"><b>✔ QC</b></td><td>Pattern check — runs automatic checks (open contours, self‑intersections, duplicate points, missing grain, missing sizes in a graded set, notch/drill mismatches) and lists them by severity. Click a finding to zoom to it.</td></tr><tr><td class="num">19</td><td class="btn"><b>📐 POM</b></td><td>Points of measure — define measurements (point‑to‑point, along‑seam, or multi‑segment girth) that grade across every size with a tolerance flag. Save/reload the set for the next style.</td></tr><tr><td class="num">20</td><td class="btn"><b>🔢 Measures</b></td><td>Show all measurements — a toggle. Select a single piece and it auto‑labels every boundary edge length and the overall width/height at the current size, plus any Points of measure defined on that piece. Select a size chip (with no individual piece) instead and it dimensions every piece of that size on the artboard.</td></tr><tr><td class="num">21</td><td class="btn"><b>⊞ Grid</b></td><td>Toggle a faint positioning grid across the artboard. The grid lines fall exactly on the ruler ticks and rescale with zoom and the unit selector, so you can eyeball spacing and line pieces up. The origin (x=0, y=0) axes are drawn slightly brighter.</td></tr><tr><td class="num">22</td><td class="btn"><b>📏 Rulers</b></td><td>Toggle the top & left rulers with unit ticks. Shortcut R.</td></tr><tr><td class="num">23</td><td class="btn"><b>⇥ Ruler</b></td><td>Drop a measuring ruler (or drag one down from the top ruler). Snaps to pattern lines; drag ends to rotate/resize; select it to convert to an annotation.</td></tr><tr><td class="num">24</td><td class="btn"><b>🖼 PNG</b></td><td>Export the current view as a PNG image.</td></tr><tr><td class="num">25</td><td class="btn"><b>📄 PDF</b></td><td>Open a printable report (view snapshot + QC results + graded POM chart + annotation table, with translated piece names) — use the browser’s Save as PDF.</td></tr><tr><td class="num">26</td><td class="btn"><b>📊 Spec</b></td><td>Export a size spec sheet as Excel (.xlsx) with mm / cm / inch tabs and a translated‑name column, plus Grade rules, Points of measure, QC report and Marker (yield) tabs.</td></tr><tr><td class="num">27</td><td class="btn"><b>🧮 Yield</b></td><td>Fabric marker &amp; yield estimate — nests the pieces into a fabric width and reports marker length, fabric used (m / yd) and utilisation, with a visual marker layout.</td></tr><tr><td class="num">28</td><td class="btn"><b>📋 Tech Pack</b></td><td>One consolidated spec document — pieces, materials, graded POM chart, QC results, fabric yield and annotations — ready to Save as PDF and hand off.</td></tr><tr><td class="num">29</td><td class="btn"><b>🖨 1:1</b></td><td>Print at actual size, tiled across Letter pages, with a calibration bar and R#·C# tile labels for taping together.</td></tr><tr><td class="num">30</td><td class="btn"><b>💾 Save DXF</b></td><td>Write your annotations, renamed pieces and artboard layout back into the DXF. Saves in place when the file was opened with the picker/handler; otherwise downloads a copy.</td></tr><tr><td class="num">31</td><td class="btn"><b>💾 Save As</b></td><td>Save a separate copy of the DXF under a new name (always a download), leaving the original untouched — handy for versioning a marked‑up or rearranged file.</td></tr><tr><td class="num">32</td><td class="btn"><b>⤓ Install</b></td><td>Appears when the app can be installed to your computer (Chrome/Edge). Click to install as a desktop app.</td></tr><tr><td class="num">33</td><td class="btn"><b>Units</b></td><td>Switch measurement units: mm · cm · inch. Affects all readouts, rulers and exports.</td></tr></tbody>
+</table>
+
+<h2 id="sidebar"><span class="n">3</span> The sidebar</h2>
+<p>The left panel is your table of contents for the file, stacked top to bottom: <b>File</b> info, the <b>Pieces</b> list, the <b>Selected piece</b> details, the <b>Layers</b> toggles, and your <b>Annotations</b>. The Pieces, Selected‑piece and Annotations panes each scroll on their own, and you can drag the thin handle between panes up or down to give a busy list more room.</p>
+<div class="fig" style="display:flex;justify-content:center"><svg viewBox="0 0 320 390" width="320" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,Segoe UI,Roboto,sans-serif"><rect x="0" y="0" width="320" height="390" rx="10" fill="#171b22"/><rect x="30" y="14" width="280" height="56" rx="8" fill="#1e242d" stroke="#2a323d"/><text x="42" y="32" font-size="11" fill="#8a94a3" font-weight="700" letter-spacing="0.5">FILE</text><text x="42" y="48" font-size="11.5" fill="#cfd6e0">File name + a materials summary (e.g. Fabric A</text><text x="42" y="63" font-size="11.5" fill="#cfd6e0">×20) · “Your name” field stamps annotations</text><circle cx="14" cy="28" r="10" fill="#37c98b"/><text x="14" y="32" font-size="12" font-weight="700" fill="#0f1216" text-anchor="middle">A</text><rect x="30" y="80" width="280" height="70" rx="8" fill="#1e242d" stroke="#2a323d"/><text x="42" y="98" font-size="11" fill="#8a94a3" font-weight="700" letter-spacing="0.5">PIECES (N)  🌐 EN</text><text x="42" y="114" font-size="11.5" fill="#cfd6e0">List of pattern pieces (auto-translated to</text><text x="42" y="129" font-size="11.5" fill="#cfd6e0">English). Click one to isolate it. Size chips</text><text x="42" y="144" font-size="11.5" fill="#cfd6e0">above the list filter it to a single size —</text><text x="42" y="159" font-size="11.5" fill="#cfd6e0">pick a size (without picking a piece) and</text><text x="42" y="174" font-size="11.5" fill="#cfd6e0">every piece in that size is laid out on the</text><text x="42" y="189" font-size="11.5" fill="#cfd6e0">artboard; click again or “All” to clear. The</text><text x="42" y="204" font-size="11.5" fill="#cfd6e0">🌐 EN switch toggles translation. In Nest mode</text><text x="42" y="219" font-size="11.5" fill="#cfd6e0">this lists base pieces.</text><circle cx="14" cy="94" r="10" fill="#37c98b"/><text x="14" y="98" font-size="12" font-weight="700" fill="#0f1216" text-anchor="middle">B</text><rect x="30" y="160" width="280" height="70" rx="8" fill="#1e242d" stroke="#2a323d"/><text x="42" y="178" font-size="11" fill="#8a94a3" font-weight="700" letter-spacing="0.5">SELECTED PIECE</text><text x="42" y="194" font-size="11.5" fill="#cfd6e0">Name · Size · Qty · Material · Category · W×H</text><text x="42" y="209" font-size="11.5" fill="#cfd6e0">· Notch/drill counts · Symmetry.</text><text x="42" y="224" font-size="11.5" fill="#cfd6e0">Seam-allowance stats when ⌷ SA is on.</text><circle cx="14" cy="174" r="10" fill="#37c98b"/><text x="14" y="178" font-size="12" font-weight="700" fill="#0f1216" text-anchor="middle">C</text><rect x="30" y="240" width="280" height="56" rx="8" fill="#1e242d" stroke="#2a323d"/><text x="42" y="258" font-size="11" fill="#8a94a3" font-weight="700" letter-spacing="0.5">LAYERS</text><text x="42" y="274" font-size="11.5" fill="#cfd6e0">Show/hide Cut, Sew, Grain, Fold, marks,</text><text x="42" y="289" font-size="11.5" fill="#cfd6e0">notches, Drill holes · Point/notch labels.</text><circle cx="14" cy="254" r="10" fill="#37c98b"/><text x="14" y="258" font-size="12" font-weight="700" fill="#0f1216" text-anchor="middle">D</text><rect x="30" y="306" width="280" height="70" rx="8" fill="#1e242d" stroke="#2a323d"/><text x="42" y="324" font-size="11" fill="#8a94a3" font-weight="700" letter-spacing="0.5">ANNOTATIONS</text><text x="42" y="340" font-size="11.5" fill="#cfd6e0">All notes with color, type, text & piece.</text><text x="42" y="355" font-size="11.5" fill="#cfd6e0">Filter by category/piece, export ⬇ CSV. Click</text><text x="42" y="370" font-size="11.5" fill="#cfd6e0">to jump & edit; ✕ deletes.</text><circle cx="14" cy="320" r="10" fill="#37c98b"/><text x="14" y="324" font-size="12" font-weight="700" fill="#0f1216" text-anchor="middle">E</text></svg></div>
+<table>
+<thead><tr><th></th><th>Section</th><th>What it shows</th></tr></thead>
+<tbody><tr><td class="num sg">A</td><td class="btn"><b>File</b></td><td>File name + a materials summary (e.g. Fabric A ×20) · “Your name” field stamps annotations</td></tr><tr><td class="num sg">B</td><td class="btn"><b>Pieces (n)  🌐 EN</b></td><td>List of pattern pieces (auto-translated to English). Click one to isolate it. Size chips above the list filter it to a single size — pick a size (without picking a piece) and every piece in that size is laid out on the artboard; click again or “All” to clear. The 🌐 EN switch toggles translation. In Nest mode this lists base pieces.</td></tr><tr><td class="num sg">C</td><td class="btn"><b>Selected piece</b></td><td>Name · Size · Qty · Material · Category · W×H · Notch/drill counts · Symmetry. Seam-allowance stats when ⌷ SA is on.</td></tr><tr><td class="num sg">D</td><td class="btn"><b>Layers</b></td><td>Show/hide Cut, Sew, Grain, Fold, marks, notches, Drill holes · Point/notch labels.</td></tr><tr><td class="num sg">E</td><td class="btn"><b>Annotations</b></td><td>All notes with color, type, text & piece. Filter by category/piece, export ⬇ CSV. Click to jump & edit; ✕ deletes.</td></tr></tbody>
+</table>
+<div class="tip">Type your name into the <b>File → “Your name”</b> box once; every annotation you create is then stamped with your name and the date.</div>
+
+<h2 id="measure"><span class="n">4</span> Measuring &amp; the ruler tool</h2>
+<p>There are three ways to measure: a quick <b>straight‑line</b> distance, a <b>seam length that follows a curve</b>, and a draggable <b>guide ruler</b> you can place, rotate and snap. All three read out in whatever unit is selected in the toolbar (mm · cm · inch) and update instantly if you switch units.</p>
+
+<h3>Quick measure — straight line</h3>
+<ol>
+  <li>Click <b>📏 Measure</b> in the toolbar, or press <kbd>M</kbd>. The cursor becomes a crosshair.</li>
+  <li>Click once where you want to start. As you move the mouse a live dashed line follows the cursor.</li>
+  <li>Click again at the end point. The readout in the <b>bottom‑right</b> shows the straight‑line <b>Distance</b> plus the horizontal <b>ΔX</b> and vertical <b>ΔY</b> components.</li>
+  <li>To keep the measurement on the pattern, click <b>📌 Pin</b> in that readout — it becomes a saved measurement annotation (and the note editor opens so you can label it). Otherwise, click two new points to measure again.</li>
+</ol>
+<div class="tip">Straight measure doesn’t snap to lines, so for exact point‑to‑point work zoom in first, or use the guide ruler (below), which snaps to corners and edges.</div>
+<div class="fig"><svg viewBox="0 0 680 400" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Inter,-apple-system,Segoe UI,Roboto,sans-serif"><rect x="0" y="0" width="680" height="400" rx="12" fill="#0f1216"/><text x="18" y="26" font-size="13" fill="#8a94a3">Measure — straight line (chest width)</text>
+  <path d="M70,80 C70,60 130,52 160,56 L215,90 C255,120 220,165 196,196 L246,344 L70,352 Z" fill="#151a21" stroke="#e6eaf0" stroke-width="2" stroke-linejoin="round"/>
+  <line x1="135" y1="122" x2="135" y2="298" stroke="#37c98b" stroke-width="2"/>
+  <polygon points="129,132 135,120 141,132" fill="#37c98b"/><polygon points="129,288 135,300 141,288" fill="#37c98b"/>
+  <circle cx="206" cy="140" r="3.2" fill="#ffd93d"/>
+  <circle cx="223" cy="270" r="3.2" fill="#ffd93d"/>
+  <g><circle cx="150" cy="250" r="4" fill="none" stroke="#ff6b6b" stroke-width="1.4"/>
+     <line x1="142" y1="250" x2="158" y2="250" stroke="#ff6b6b" stroke-width="1.4"/>
+     <line x1="150" y1="242" x2="150" y2="258" stroke="#ff6b6b" stroke-width="1.4"/></g>
+  <rect x="122" y="200" width="56" height="20" rx="5" fill="rgba(13,16,21,0.78)"/>
+  <text x="150" y="214" font-size="12" font-weight="600" fill="#e6eaf0" text-anchor="middle">Front</text><line x1="70" y1="182" x2="196" y2="182" stroke="#8a94a3" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/><line x1="196" y1="182" x2="196" y2="190" stroke="#8a94a3" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/><text x="133" y="176" font-size="10" fill="#8a94a3" text-anchor="middle">ΔX</text><line x1="70" y1="182" x2="196" y2="190" stroke="#37c98b" stroke-width="2.2" stroke-dasharray="5,4"/><circle cx="70" cy="182" r="4" fill="#37c98b"/><circle cx="196" cy="190" r="4" fill="#37c98b"/><rect x="430" y="296" width="222" height="80" rx="9" fill="rgba(13,16,21,0.95)" stroke="#2a323d" stroke-width="1.2"/><text x="444" y="318" font-size="11.5" fill="#8a94a3">Distance</text><text x="638" y="320" font-size="17" font-weight="700" fill="#37c98b" text-anchor="end">24.6 cm</text><text x="444" y="340" font-size="12" fill="#e6eaf0">ΔX 24.5 cm&#160;&#160;&#160;ΔY 1.2 cm</text><rect x="444" y="350" width="66" height="20" rx="10" fill="#1e242d" stroke="#2a323d" stroke-width="1"/><text x="477" y="364" font-size="11.5" fill="#e6eaf0" text-anchor="middle">Pin</text><text x="522" y="364" font-size="10.5" fill="#8a94a3">keep as annotation</text></svg></div><div class="figcap">Measuring the chest width. The green dashed line runs between your two clicks; the readout shows the distance plus the horizontal/vertical deltas, with <b>Pin</b> to keep it as a saved measurement.</div>
+
+<h3>Seam length &amp; walk‑the‑seam</h3>
+<p>Use this whenever you need the length <b>along</b> a curved edge — an armhole, a neckline, a princess seam — rather than the straight distance across it. It’s also how you check that two edges which must sew together are the same length.</p>
+<ol>
+  <li>Click <b>〰 Seam</b> in the toolbar, or press <kbd>S</kbd>.</li>
+  <li>Click a point on a pattern line — a highlight ring shows it locked onto that line. Then click a <b>second</b> point <b>on the same line</b>. The tool traces the edge between the two clicks and reports the <b>length along the curve</b>.</li>
+  <li>To compare two edges, measure a <b>second</b> seam the same way. The readout now lists <b>Seam A</b> and <b>Seam B</b> with their lengths and the difference (<b>Δ</b>), flagged <b>✓ match</b> or <b>✗ off</b> against the tolerance — this is the “walk‑the‑seam” check.</li>
+  <li>On a closed outline there are two ways around between your points; if it traced the long way, click <b>⇄ Flip last</b> to take the other arc. <b>Clear</b> removes the seam measurements and starts over.</li>
+</ol>
+<div class="warn">Both clicks must land on the <b>same</b> line entity. If the second click doesn’t register, you likely clicked a different line (e.g. the sew line instead of the cut line) — zoom in and click directly on the intended edge.</div>
+<div class="fig"><svg viewBox="0 0 680 400" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Inter,-apple-system,Segoe UI,Roboto,sans-serif"><rect x="0" y="0" width="680" height="400" rx="12" fill="#0f1216"/><text x="18" y="26" font-size="13" fill="#8a94a3">Seam — walk-the-seam (armhole vs sleeve cap)</text>
+  <path d="M70,80 C70,60 130,52 160,56 L215,90 C255,120 220,165 196,196 L246,344 L70,352 Z" fill="#151a21" stroke="#e6eaf0" stroke-width="2" stroke-linejoin="round"/>
+  <line x1="135" y1="122" x2="135" y2="298" stroke="#37c98b" stroke-width="2"/>
+  <polygon points="129,132 135,120 141,132" fill="#37c98b"/><polygon points="129,288 135,300 141,288" fill="#37c98b"/>
+  <circle cx="206" cy="140" r="3.2" fill="#ffd93d"/>
+  <circle cx="223" cy="270" r="3.2" fill="#ffd93d"/>
+  <g><circle cx="150" cy="250" r="4" fill="none" stroke="#ff6b6b" stroke-width="1.4"/>
+     <line x1="142" y1="250" x2="158" y2="250" stroke="#ff6b6b" stroke-width="1.4"/>
+     <line x1="150" y1="242" x2="150" y2="258" stroke="#ff6b6b" stroke-width="1.4"/></g>
+  <rect x="122" y="200" width="56" height="20" rx="5" fill="rgba(13,16,21,0.78)"/>
+  <text x="150" y="214" font-size="12" font-weight="600" fill="#e6eaf0" text-anchor="middle">Front</text><path d="M215,90 C255,120 220,165 196,196" fill="none" stroke="#ff9f43" stroke-width="4" stroke-linecap="round"/><circle cx="215" cy="90" r="4.5" fill="#ff9f43"/><circle cx="196" cy="196" r="4.5" fill="#ff9f43"/><text x="243" y="150" font-size="11" font-weight="700" fill="#ff9f43">A</text><path d="M360,250 C360,150 420,120 470,120 C520,120 580,150 580,250 Z" fill="#151a21" stroke="#e6eaf0" stroke-width="2" stroke-linejoin="round"/><rect x="440" y="235" width="60" height="20" rx="5" fill="rgba(13,16,21,0.78)"/><text x="470" y="249" font-size="12" font-weight="600" fill="#e6eaf0" text-anchor="middle">Sleeve</text><path d="M360,250 C360,150 420,120 470,120 C520,120 580,150 580,250" fill="none" stroke="#22d3ee" stroke-width="4" stroke-linecap="round"/><circle cx="360" cy="250" r="4.5" fill="#22d3ee"/><circle cx="580" cy="250" r="4.5" fill="#22d3ee"/><text x="466" y="112" font-size="11" font-weight="700" fill="#22d3ee">B</text><rect x="250" y="300" width="232" height="80" rx="9" fill="rgba(13,16,21,0.95)" stroke="#ff9f43" stroke-width="1.2"/><text x="264" y="324" font-size="13" fill="#ff9f43"><tspan font-weight="700">Seam A</tspan>  21.4 cm</text><text x="264" y="344" font-size="13" fill="#22d3ee"><tspan font-weight="700">Seam B</tspan>  21.6 cm</text><text x="264" y="365" font-size="13" fill="#e6eaf0">Δ <tspan font-weight="700" fill="#37c98b">0.2 cm</tspan>  <tspan fill="#37c98b">✓ match</tspan></text></svg></div><div class="figcap">Walk‑the‑seam: the front <b style='color:#ff9f43'>armhole (Seam A)</b> measured against the <b style='color:#22d3ee'>sleeve cap (Seam B)</b>. The readout compares the two curved lengths and flags <b>✓ match</b> when they’re within tolerance.</div>
+
+<h3>The guide ruler</h3>
+<p>The guide ruler is a movable, rotatable ruler with tick marks — think of laying a physical ruler on the pattern. It’s a measuring aid; it isn’t saved unless you convert it to an annotation.</p>
+<ol>
+  <li>Click <b>⇥ Ruler</b> to drop one in the middle of the view. (Alternatively turn on <b>📏 Rulers</b> to show the top/left ruler bars, then drag down from the top bar to pull out a guide.)</li>
+  <li>It appears spanning the piece edge‑to‑edge with a <b>0</b> at the left end and tick marks along its length.</li>
+  <li><b>Move it</b> — drag the middle of the ruler to slide it around.</li>
+  <li><b>Rotate / resize it</b> — drag either square end. Hold <kbd>Shift</kbd> while dragging an end to snap the angle to 15° increments (handy for grain lines, 45° bias, right angles).</li>
+  <li><b>Snap to the pattern</b> — as you drag an end near a line, it locks onto the nearest corner or edge and shows a magenta marker, so you can measure exactly corner‑to‑corner.</li>
+  <li><b>Keep or remove it</b> — click the ruler to select it and get a small menu: <b>📌 Annotate</b> turns it into a saved measurement that travels with the file; <b>✕</b> removes it. Double‑clicking a ruler also removes it.</li>
+</ol>
+<div class="fig"><svg viewBox="0 0 680 400" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Inter,-apple-system,Segoe UI,Roboto,sans-serif"><rect x="0" y="0" width="680" height="400" rx="12" fill="#0f1216"/><text x="18" y="26" font-size="13" fill="#8a94a3">Guide ruler — snaps to corners, rotate &amp; resize</text>
+  <path d="M70,80 C70,60 130,52 160,56 L215,90 C255,120 220,165 196,196 L246,344 L70,352 Z" fill="#151a21" stroke="#e6eaf0" stroke-width="2" stroke-linejoin="round"/>
+  <line x1="135" y1="122" x2="135" y2="298" stroke="#37c98b" stroke-width="2"/>
+  <polygon points="129,132 135,120 141,132" fill="#37c98b"/><polygon points="129,288 135,300 141,288" fill="#37c98b"/>
+  <circle cx="206" cy="140" r="3.2" fill="#ffd93d"/>
+  <circle cx="223" cy="270" r="3.2" fill="#ffd93d"/>
+  <g><circle cx="150" cy="250" r="4" fill="none" stroke="#ff6b6b" stroke-width="1.4"/>
+     <line x1="142" y1="250" x2="158" y2="250" stroke="#ff6b6b" stroke-width="1.4"/>
+     <line x1="150" y1="242" x2="150" y2="258" stroke="#ff6b6b" stroke-width="1.4"/></g>
+  <rect x="122" y="200" width="56" height="20" rx="5" fill="rgba(13,16,21,0.78)"/>
+  <text x="150" y="214" font-size="12" font-weight="600" fill="#e6eaf0" text-anchor="middle">Front</text><line x1="80" y1="305" x2="300" y2="118" stroke="#22d3ee" stroke-width="2"/><line x1="80.0" y1="305.0" x2="74.2" y2="298.1" stroke="#22d3ee" stroke-width="1.3"/><line x1="98.3" y1="289.4" x2="95.1" y2="285.6" stroke="#22d3ee" stroke-width="1.3"/><line x1="116.7" y1="273.8" x2="113.4" y2="270.0" stroke="#22d3ee" stroke-width="1.3"/><line x1="135.0" y1="258.3" x2="131.8" y2="254.4" stroke="#22d3ee" stroke-width="1.3"/><line x1="153.3" y1="242.7" x2="150.1" y2="238.9" stroke="#22d3ee" stroke-width="1.3"/><line x1="171.7" y1="227.1" x2="165.8" y2="220.2" stroke="#22d3ee" stroke-width="1.3"/><line x1="190.0" y1="211.5" x2="186.8" y2="207.7" stroke="#22d3ee" stroke-width="1.3"/><line x1="208.3" y1="195.9" x2="205.1" y2="192.1" stroke="#22d3ee" stroke-width="1.3"/><line x1="226.7" y1="180.3" x2="223.4" y2="176.5" stroke="#22d3ee" stroke-width="1.3"/><line x1="245.0" y1="164.8" x2="241.8" y2="160.9" stroke="#22d3ee" stroke-width="1.3"/><line x1="263.3" y1="149.2" x2="257.5" y2="142.3" stroke="#22d3ee" stroke-width="1.3"/><line x1="281.7" y1="133.6" x2="278.4" y2="129.8" stroke="#22d3ee" stroke-width="1.3"/><line x1="300.0" y1="118.0" x2="296.8" y2="114.2" stroke="#22d3ee" stroke-width="1.3"/><rect x="76.5" y="301.5" width="7" height="7" fill="#0f1216" stroke="#22d3ee" stroke-width="1.5"/><rect x="296.5" y="114.5" width="7" height="7" fill="#0f1216" stroke="#22d3ee" stroke-width="1.5"/><circle cx="80" cy="305" r="5" fill="#22d3ee"/><text x="80" y="308" font-size="8" font-weight="700" fill="#0f1216" text-anchor="middle">0</text><rect x="294" y="112" width="12" height="12" fill="none" stroke="#ff4dd2" stroke-width="1.6"/><line x1="290" y1="118" x2="310" y2="118" stroke="#ff4dd2" stroke-width="1.4"/><line x1="300" y1="108" x2="300" y2="128" stroke="#ff4dd2" stroke-width="1.4"/><text x="314" y="112" font-size="10.5" fill="#ff4dd2">snapped</text><text x="314" y="132" font-size="12" font-weight="700" fill="#22d3ee">31.8 cm</text><rect x="350" y="250" width="210" height="42" rx="9" fill="rgba(13,16,21,0.95)" stroke="#22d3ee" stroke-width="1.2"/><text x="364" y="276" font-size="13" font-weight="700" fill="#22d3ee">31.8 cm</text><rect x="432" y="261" width="84" height="20" rx="10" fill="#1e242d" stroke="#2a323d" stroke-width="1"/><text x="474" y="275" font-size="11" fill="#e6eaf0" text-anchor="middle">Annotate</text><rect x="522" y="261" width="24" height="20" rx="10" fill="#1e242d" stroke="#2a323d" stroke-width="1"/><text x="534" y="275" font-size="12" fill="#8a94a3" text-anchor="middle">✕</text></svg></div><div class="figcap">The guide ruler laid across a piece. Ticks read from the <b>0</b> end; dragging an end near a corner snaps to it (magenta marker). Select the ruler to <b>Annotate</b> (save it) or remove it.</div>
+
+<h3>Show all measurements (🔢 Measures)</h3>
+<p>When you just want to <b>see</b> every measurement on a piece rather than measure by hand, use the <b>🔢 Measures</b> toggle.</p>
+<ol>
+  <li>Select a <b>single piece</b> in the sidebar (a specific piece at a specific size).</li>
+  <li>Click <b>🔢 Measures</b> in the toolbar. The tool automatically labels <b>every boundary edge length</b> (segmented at the corners, measured along curves), plus the overall <b>width and height</b> as dimension bars. Each measurement shows small <b>start/end reference dots</b> so you can see exactly which two points it spans.</li>
+  <li>Any <b>Points of measure</b> you’ve defined on that piece are drawn too, resolved to the selected size with their values.</li>
+  <li>Switch sizes or pieces and the labels update to that piece and size. Click <b>🔢 Measures</b> again to turn the overlay off.</li>
+</ol>
+<div class="tip">Want measurements on <b>every</b> piece at once? Pick a <b>size</b> chip (without selecting an individual piece) and turn on <b>🔢 Measures</b> — the whole size is laid out on the artboard and each piece is dimensioned. With nothing selected the overlay stays off to avoid clutter.</div>
+<div class="tip">Everything reads in the current unit — flip the Units selector to see the same piece in mm, cm or inches.</div>
+
+<h3>Positioning grid (⊞ Grid)</h3>
+<p>Click <b>⊞ Grid</b> to lay a faint grid over the artboard. It’s handy for eyeballing spacing and lining pieces up while you rearrange them. The grid is <b>in sync with the rulers</b> — its lines sit on the same ticks, and it rescales as you zoom and when you switch units (mm · cm · inch). The <b>origin</b> (x=0, y=0) axes are drawn a touch brighter so you can see the datum. Grid works with or without the rulers showing.</p>
+
+<h3>Rearrange pieces on the artboard (✋ Move)</h3>
+<p>Use <b>✋ Move</b> (<kbd>X</kbd>) to slide pieces around so you can compare them side by side — for example, butting a front and a back together to check that the armholes or side seams line up.</p>
+<ol>
+  <li>Click <b>✋ Move</b>. The view switches to show <b>all</b> pieces so you have something to align against.</li>
+  <li>Drag any piece. As an edge, centre‑line or notch of the piece you’re dragging comes close to the same feature on a neighbour, a <b>green dashed alignment guide</b> appears and the piece <b>snaps</b> into line.</li>
+  <li>Drop it where you want. To undo a placement, <b>double‑click</b> the piece and it jumps back to its original position (this also clears any rotation or flip).</li>
+</ol>
+<h4>Rotate &amp; flip</h4>
+<p>Click a piece to <b>select</b> it (it gets a blue outline) and a small control floats just above its bounding box:</p>
+<ul>
+  <li><b>⟲ / ⟳</b> — rotate the piece 90° counter‑clockwise / clockwise about its centre.</li>
+  <li><b>⇄ / ⇅</b> — flip the piece horizontally (mirror left↔right) or vertically (mirror top↕bottom).</li>
+</ul>
+<p>Rotating and flipping are useful for measuring or aligning a mirrored or off‑orientation piece against another. Like moves, they’re stored as a note in the DXF and reload with the file; double‑click the piece to reset everything.</p>
+<h4>Free transform</h4>
+<p>By default, dragging a piece <b>snaps</b> to the alignment guides. To position and rotate with no snapping at all:</p>
+<ul>
+  <li><b>Free move</b> — click the <b>🧲</b> magnet in the floating control to turn snapping off (or just hold <b>Alt</b> while dragging). The piece follows the cursor exactly, with no guides.</li>
+  <li><b>Free rotate</b> — drag the round <b>handle</b> that floats just above the selected piece to rotate it to any angle about its centre. Hold <b>Shift</b> to snap the angle to 15° steps.</li>
+</ul>
+<div class="tip">While you’re in Move mode the pieces are drawn in a faint <b>onion‑skin</b> tint, so when one piece sits on top of another it stays see‑through and you can read the piece underneath. The piece you’re dragging is tinted a touch stronger so you can tell which one is on top. Overlapping tints blend, which makes it easy to see exactly where two edges or armholes line up.</div>
+<div class="tip">Moving a piece never changes the pattern itself — the original coordinates are preserved. Your arrangement is stored as a note inside the DXF, so when you <b>💾 Save</b> and reopen the file the layout comes back exactly as you left it.</div>
+
+<h3>Rename a piece (✎)</h3>
+<p>If the auto‑translated name isn’t what you call the piece, rename it: select the piece, then click the <b>✎</b> pencil next to its <b>Name</b> in the sidebar and type a new label. The name updates on the piece badge, the piece list, the nest view and every export. Renames are saved inside the DXF alongside your annotations.</p>
+
+<h3>Save a copy (💾 Save As…)</h3>
+<p><b>💾 Save DXF</b> writes your annotations, renamed pieces and artboard layout back into the current file. <b>💾 Save As…</b> instead downloads a <b>separate copy</b> under a new name, leaving the original untouched — useful for keeping a marked‑up or rearranged version next to the clean original.</p>
+
+<h3>Pair seams (🧵 Sew)</h3>
+<p>The <b>🧵 Sew</b> tool lets you build a <b>seam map</b> — a record of which edge sews to which — by hand. It’s useful for checking that seams that join actually match in length, and it’s the foundation for the upcoming 3D sew‑up.</p>
+<ol>
+  <li>Click <b>🧵 Sew</b>. Each piece’s outline lights up, split into clickable <b>edges</b> at its corners and <b>notches</b> — so a long seam that meets two shorter edges can be joined notch‑to‑notch.</li>
+  <li>Click an edge on one piece — a “thread” follows your cursor — then click the <b>matching edge</b> on another piece to pair them. Press <kbd>Esc</kbd> (or click empty space) to cancel a pick.</li>
+  <li>Each seam gets a matching <b>numbered tag</b> and colour on both edges, a dashed connector between them, small <b>direction arrows</b>, and a <b>length readout</b> (e.g. <i>24.0 / 24.1 cm ✓</i>, or a red ⚠ if the two edges differ by more than tolerance).</li>
+  <li>The <b>Seams panel</b> lists every pair. Click one to highlight it, <b>⇄</b> flips the sew direction, and <b>✕</b> deletes it.</li>
+</ol>
+<div class="tip">Seam maps are saved inside the DXF with <b>💾 Save DXF</b>, so they travel with the file and reload where you left them. Pieces are matched by name, so pair seams on the size you’re working with.</div>
+
+<h3>3D sew preview (🪡 3D) — experimental</h3>
+<p>Once you’ve paired some seams, click <b>🪡 3D</b> to see the pieces <b>drape together in 3D</b>. The tool wraps the pieces around a body form and stitches the seams you defined — so what you see comes straight from your seam map, not a guess.</p>
+<ol>
+  <li>Pair the seams you care about with <b>🧵 Sew</b> first, then click <b>🪡 3D</b>.</li>
+  <li><b>Drag</b> to orbit the view and <b>scroll</b> to zoom.</li>
+  <li><b>⏸ / ▶</b> pauses or resumes the drape, <b>↺ Reset</b> restarts it, <b>🧍 Body</b> toggles the body form, and <b>▦ Wire</b> shows the mesh instead of solid fabric.</li>
+  <li><b>✕ Close</b> returns to the flat pattern.</li>
+</ol>
+<div class="tip">This is an early preview meant for checking how pieces come together, not a precise fabric simulation. The more of the garment’s seams you pair, the more complete the drape.</div>
+
+<h2 id="annotate"><span class="n">5</span> Annotations</h2>
+<p>Annotations are notes you place on the pattern to flag issues, ask questions or approve details. There are four kinds — <b>📌 Point</b> (a single pin), <b>↗ Arrow</b> (a leader from an anchor to a target), <b>▭ Box</b> (a region), and pinned <b>measurements</b> — and they’re saved inside the DXF, so they travel with the file to the factory and reload exactly where you left them.</p>
+
+<h3>Set your name first (once)</h3>
+<p>In the sidebar’s <b>File</b> section, type your name into the <b>“Your name”</b> box. Every annotation you create from then on is stamped with your name and the date. You only need to do this once per browser.</p>
+
+<h3>Create an annotation</h3>
+<ol>
+  <li>Pick a tool: <b>📌 Point</b> (<kbd>P</kbd>), <b>↗ Arrow</b> (<kbd>L</kbd>) or <b>▭ Box</b> (<kbd>B</kbd>).</li>
+  <li>Click on the pattern:
+    <ul>
+      <li><b>Point</b> — one click drops the pin.</li>
+      <li><b>Arrow</b> — click the anchor point, then click the target the arrow should point to.</li>
+      <li><b>Box</b> — click one corner, then the opposite corner.</li>
+    </ul>
+  </li>
+  <li>The note editor opens automatically. Type your <b>note</b>, choose a <b>category</b> (Note, Issue, To‑do, Question, Approved) and a <b>color</b> from the palette, then click <b>Save</b>. (Press <kbd>Esc</kbd> to cancel a note you just started.)</li>
+  <li>The annotation is auto‑tagged with the nearest <b>piece</b>, plus your <b>name</b> and today’s <b>date</b>.</li>
+</ol>
+<div class="fig"><svg viewBox="0 0 680 400" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Inter,-apple-system,Segoe UI,Roboto,sans-serif"><rect x="0" y="0" width="680" height="400" rx="12" fill="#0f1216"/><text x="18" y="26" font-size="13" fill="#8a94a3">Annotations — point, arrow &amp; box notes</text>
+  <path d="M70,80 C70,60 130,52 160,56 L215,90 C255,120 220,165 196,196 L246,344 L70,352 Z" fill="#151a21" stroke="#e6eaf0" stroke-width="2" stroke-linejoin="round"/>
+  <line x1="135" y1="122" x2="135" y2="298" stroke="#37c98b" stroke-width="2"/>
+  <polygon points="129,132 135,120 141,132" fill="#37c98b"/><polygon points="129,288 135,300 141,288" fill="#37c98b"/>
+  <circle cx="206" cy="140" r="3.2" fill="#ffd93d"/>
+  <circle cx="223" cy="270" r="3.2" fill="#ffd93d"/>
+  <g><circle cx="150" cy="250" r="4" fill="none" stroke="#ff6b6b" stroke-width="1.4"/>
+     <line x1="142" y1="250" x2="158" y2="250" stroke="#ff6b6b" stroke-width="1.4"/>
+     <line x1="150" y1="242" x2="150" y2="258" stroke="#ff6b6b" stroke-width="1.4"/></g>
+  <rect x="122" y="200" width="56" height="20" rx="5" fill="rgba(13,16,21,0.78)"/>
+  <text x="150" y="214" font-size="12" font-weight="600" fill="#e6eaf0" text-anchor="middle">Front</text><circle cx="150" cy="250" r="9" fill="#ffd93d"/><text x="150" y="254" font-size="11" font-weight="700" fill="#000" text-anchor="middle">1</text><line x1="300" y1="120" x2="212" y2="150" stroke="#4c9aff" stroke-width="2"/><polygon points="212,150 224,144 222,156" fill="#4c9aff"/><circle cx="300" cy="120" r="9" fill="#4c9aff"/><text x="300" y="124" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text><rect x="176" y="300" width="70" height="46" fill="none" stroke="#ff6b6b" stroke-width="2" stroke-dasharray="5,3"/><circle cx="176" cy="300" r="9" fill="#ff6b6b"/><text x="176" y="304" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text><rect x="330" y="150" width="250" height="150" rx="9" fill="rgba(13,16,21,0.95)" stroke="#4c9aff" stroke-width="1.2"/><text x="344" y="174" font-size="12" fill="#e6eaf0"><tspan font-weight="700">↗ Arrow</tspan>  <tspan fill="#8a94a3" font-size="10.5">Front · You · 2026-07-10</tspan></text><rect x="344" y="184" width="222" height="44" rx="6" fill="#1e242d" stroke="#2a323d"/><text x="352" y="202" font-size="11.5" fill="#e6eaf0">Ease neckline 3&#160;mm</text><rect x="344" y="236" width="58" height="20" rx="10" fill="#1e242d" stroke="#2a323d" stroke-width="1"/><text x="373" y="250" font-size="11" fill="#e6eaf0" text-anchor="middle">Issue</text><circle cx="416" cy="246" r="6.5" fill="#ffd93d" /><circle cx="432" cy="246" r="6.5" fill="#ff6b6b" stroke="#fff" stroke-width="1.5"/><circle cx="448" cy="246" r="6.5" fill="#4c9aff" /><circle cx="464" cy="246" r="6.5" fill="#c78bff" /><circle cx="480" cy="246" r="6.5" fill="#37c98b" /><rect x="462" y="270" width="52" height="22" rx="11" fill="#1e242d" stroke="#2a323d" stroke-width="1"/><text x="488" y="285" font-size="11" fill="#e6eaf0" text-anchor="middle">Cancel</text><rect x="520" y="270" width="46" height="22" rx="11" fill="#37c98b" /><text x="543" y="285" font-size="11" fill="#06231a" text-anchor="middle" font-weight="700">Save</text></svg></div><div class="figcap">The three note types on a piece — a numbered <b>point</b> (1), an <b>arrow</b> leader (2) and a dashed <b>box</b> region (3) — with the editor open: note text, category (Issue) and colour, stamped with piece, author and date.</div>
+
+<h3>Turn a measurement into a note</h3>
+<p>Any measurement can become a saved annotation: with the <b>📏 Measure</b> tool, click two points and press <b>📌 Pin</b> in the readout; or select a guide ruler and choose <b>📌 Annotate</b>. Pinned measurements show their distance and behave like any other annotation.</p>
+
+<h3>Read, edit &amp; delete</h3>
+<ol>
+  <li><b>Read</b> — hover any pin to see its note in a tooltip.</li>
+  <li><b>Edit</b> — switch to <b>✥ Pan</b> mode and click the pin; the editor reopens. Change the text, category or color and Save.</li>
+  <li><b>Jump to one</b> — in the <b>Annotations</b> panel (sidebar), click a row to center the view on that note and open it.</li>
+  <li><b>Delete</b> — click the <b>✕</b> on its row in the Annotations panel, or open it and press <b>Delete</b>. Made a mistake? <kbd>Ctrl/Cmd+Z</kbd> undoes it.</li>
+</ol>
+
+<h3>Filter &amp; export the list</h3>
+<ol>
+  <li>In the Annotations panel, use the <b>category</b> and <b>piece</b> dropdowns to narrow the list — e.g. show only <i>Issues</i>, or only notes on the <i>Front</i>.</li>
+  <li>Click <b>⬇ CSV</b> to export exactly what’s shown. The spreadsheet includes the note, category, original and translated piece name, any measurement, author and date — handy for sending a factory just its open issues.</li>
+</ol>
+<div class="tip">Notes support any language (including Chinese). Because they’re written into the DXF on <b>💾 Save DXF</b>, a colleague who opens the same file sees your notes in place — no side files to pass around.</div>
+
+<h2 id="grade"><span class="n">6</span> Grade nest &amp; grade vectors</h2>
+<p>“Grading” is how a pattern scales from size to size. The nest view stacks every size of a piece on top of each other so you can see the progression, and grade vectors show the direction each landmark point grows. For the most accurate results, load the <code>.rul</code> grade‑rule file alongside the DXF (it sets the size order and which size is the sample).</p>
+
+<h3>View the size nest</h3>
+<ol>
+  <li>Click <b>▤ Nest</b> in the toolbar, or press <kbd>G</kbd>. The canvas redraws with every size <b>overlaid and colored by size</b>, and the sidebar switches to a list of <b>base pieces</b> (one row per piece, e.g. “Front — 5 sizes”) with a color legend.</li>
+  <li>Click a base piece in the list to <b>isolate</b> just that piece’s nested sizes — much easier to read than the whole pattern at once.</li>
+  <li>The <b>Selected piece</b> panel shows a grade table: each size’s <b>width × height</b> and the <b>ΔW</b> (width change) versus the sample size, with the sample marked by an asterisk.</li>
+  <li>Click <b>▤ Nest</b> again to leave nest view and return to the normal per‑piece list.</li>
+</ol>
+<div class="fig"><svg viewBox="0 0 680 400" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Inter,-apple-system,Segoe UI,Roboto,sans-serif"><rect x="0" y="0" width="680" height="400" rx="12" fill="#0f1216"/><text x="18" y="26" font-size="13" fill="#8a94a3">Grade nest — every size overlaid, coloured by size</text><path d="M70,80 C70,60 130,52 160,56 L215,90 C255,120 220,165 196,196 L246,344 L70,352 Z" transform="translate(15.00,21.00) scale(0.9)" fill="none" stroke="#ff6b6b" stroke-width="1.4"/><path d="M70,80 C70,60 130,52 160,56 L215,90 C255,120 220,165 196,196 L246,344 L70,352 Z" transform="translate(7.50,10.50) scale(0.95)" fill="none" stroke="#ffb454" stroke-width="1.4"/><path d="M70,80 C70,60 130,52 160,56 L215,90 C255,120 220,165 196,196 L246,344 L70,352 Z" transform="translate(0.00,0.00) scale(1)" fill="none" stroke="#ffd93d" stroke-width="2.4"/><path d="M70,80 C70,60 130,52 160,56 L215,90 C255,120 220,165 196,196 L246,344 L70,352 Z" transform="translate(-7.50,-10.50) scale(1.05)" fill="none" stroke="#37c98b" stroke-width="1.4"/><path d="M70,80 C70,60 130,52 160,56 L215,90 C255,120 220,165 196,196 L246,344 L70,352 Z" transform="translate(-15.00,-21.00) scale(1.1)" fill="none" stroke="#4c9aff" stroke-width="1.4"/><rect x="420" y="120" width="16" height="4" rx="2" fill="#ff6b6b"/><text x="446" y="126" font-size="12.5" fill="#e6eaf0">XS</text><rect x="420" y="150" width="16" height="4" rx="2" fill="#ffb454"/><text x="446" y="156" font-size="12.5" fill="#e6eaf0">S</text><rect x="420" y="180" width="16" height="4" rx="2" fill="#ffd93d"/><text x="446" y="186" font-size="12.5" fill="#e6eaf0">M  (sample)</text><rect x="420" y="210" width="16" height="4" rx="2" fill="#37c98b"/><text x="446" y="216" font-size="12.5" fill="#e6eaf0">L</text><rect x="420" y="240" width="16" height="4" rx="2" fill="#4c9aff"/><text x="446" y="246" font-size="12.5" fill="#e6eaf0">XL</text></svg></div><div class="figcap">Grade nest — every size of a piece overlaid and coloured by size, with the sample (M) drawn heavier. The sidebar shows the matching size legend.</div>
+
+<h3>Show grade vectors</h3>
+<ol>
+  <li>With a piece in view, click <b>↗ Grade</b>.</li>
+  <li>At each grade point the tool draws a small <b>fan</b> connecting that point across the sizes, with an arrow pointing toward the <b>largest</b> size — so you can see at a glance which way, and how much, each landmark moves as the pattern grows.</li>
+  <li>Pieces that don’t grade (a pocket, a small trim) correctly show <b>no</b> vectors — a quick sanity check that fixed parts aren’t accidentally scaling.</li>
+  <li>Click <b>↗ Grade</b> again to hide the vectors.</li>
+</ol>
+<div class="tip">Without a <code>.rul</code> the tool still groups sizes it can infer from the piece names, but the size order and sample size may not match your intent. Loading the <code>.rul</code> makes the nest, grade table, grade‑rules export and POM grading exact.</div>
+
+<h2 id="qc"><span class="n">7</span> Quality checks &amp; exports</h2>
+<p>This section covers the tools that verify a pattern is correct — seam allowance, symmetry, the automatic pattern check and points of measure — and the ways to get the results out (image, PDF report, Excel spec, 1:1 print).</p>
+
+<h3>Seam allowance (⌷ SA)</h3>
+<p>Seam allowance is the gap between the cut line and the sew line. This check highlights where that gap is inconsistent — often a sign of a digitizing slip.</p>
+<ol>
+  <li>Click a single piece in the sidebar to select it (the check works one piece at a time and needs a piece that has both a cut line and a sew line).</li>
+  <li>Click <b>⌷ SA</b> in the toolbar.</li>
+  <li>The sew line is dotted along its length: <b>green</b> dots where the allowance matches the typical value, <b>red</b> dots where it drifts more than 1&nbsp;mm.</li>
+  <li>The <b>Selected piece</b> panel reports the <b>typical</b> allowance, the <b>min / max</b>, and how many points are off — so you can tell an intentional stepped allowance (e.g. a wide hem) from an error.</li>
+  <li>Click <b>⌷ SA</b> again to turn the overlay off.</li>
+</ol>
+<h3>Symmetry &amp; mirror pairs</h3>
+<ul>
+  <li><b>Symmetry.</b> The <b>Selected piece</b> panel shows how far a piece deviates from its own vertical mirror — “symmetric ±x” (e.g. a waistband) or “asymmetric (x)”. A quick check for pieces that should be cut on the fold.</li>
+  <li><b>Mirror pairs.</b> The <b>File</b> panel notes when it detects left/right mirror‑pair pieces (matched by size, dimensions and mirrored overlay).</li>
+</ul>
+<h3>Pattern check (✔ QC)</h3>
+<p>Click <b>✔ QC</b> to run an automatic audit of the whole file. Findings appear in a panel, sorted with <b>errors</b> first and <b>warnings</b> after; click any finding to zoom straight to the piece (and the exact spot for geometry issues). Re‑run with <b>↻</b> or export the list with <b>⬇</b>.</p>
+<ul>
+  <li><b>Errors</b> — no cut line, cut line not closed, cut line self‑intersects, a graded set missing one or more sizes, or notch/drill counts that differ between sizes of the same piece.</li>
+  <li><b>Warnings</b> — duplicate / zero‑length points on the cut line, a missing grain line, or a mirror pair whose notch counts don’t match.</li>
+</ul>
+<div class="fig"><svg viewBox="0 0 680 400" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Inter,-apple-system,Segoe UI,Roboto,sans-serif"><rect x="0" y="0" width="680" height="400" rx="12" fill="#0f1216"/><text x="18" y="26" font-size="13" fill="#8a94a3">Pattern check (QC) — automatic audit by severity</text>
+  <path d="M70,80 C70,60 130,52 160,56 L215,90 C255,120 220,165 196,196 L246,344 L70,352 Z" fill="#151a21" stroke="#e6eaf0" stroke-width="2" stroke-linejoin="round"/>
+  <line x1="135" y1="122" x2="135" y2="298" stroke="#37c98b" stroke-width="2"/>
+  <polygon points="129,132 135,120 141,132" fill="#37c98b"/><polygon points="129,288 135,300 141,288" fill="#37c98b"/>
+  <circle cx="206" cy="140" r="3.2" fill="#ffd93d"/>
+  <circle cx="223" cy="270" r="3.2" fill="#ffd93d"/>
+  <g><circle cx="150" cy="250" r="4" fill="none" stroke="#ff6b6b" stroke-width="1.4"/>
+     <line x1="142" y1="250" x2="158" y2="250" stroke="#ff6b6b" stroke-width="1.4"/>
+     <line x1="150" y1="242" x2="150" y2="258" stroke="#ff6b6b" stroke-width="1.4"/></g>
+  <rect x="122" y="200" width="56" height="20" rx="5" fill="rgba(13,16,21,0.78)"/>
+  <text x="150" y="214" font-size="12" font-weight="600" fill="#e6eaf0" text-anchor="middle">Front</text><circle cx="70" cy="352" r="12" fill="rgba(255,45,85,0.22)" stroke="#ff2d55" stroke-width="2"/><line x1="54" y1="352" x2="86" y2="352" stroke="#ff2d55" stroke-width="1.6"/><line x1="70" y1="336" x2="70" y2="368" stroke="#ff2d55" stroke-width="1.6"/><rect x="330" y="54" width="330" height="250" rx="9" fill="rgba(13,16,21,0.95)" stroke="#ff9f43" stroke-width="1.2"/><text x="346" y="80" font-size="13" font-weight="700" fill="#e6eaf0">Pattern check  <tspan fill="#ff6b6b">1 error</tspan> <tspan fill="#8a94a3">·</tspan> <tspan fill="#ffb454">2 warnings</tspan></text><rect x="342" y="102" width="306" height="32" rx="6" fill="#1e242d"/><circle cx="356" cy="118" r="5" fill="#ff6b6b"/><text x="370" y="122" font-size="11.5" fill="#e6eaf0">Cut line not closed — Back [S]</text><rect x="342" y="142" width="306" height="32" rx="6" fill="#1e242d"/><circle cx="356" cy="158" r="5" fill="#ffb454"/><text x="370" y="162" font-size="11.5" fill="#e6eaf0">Duplicate points on cut line — Waistband [M]</text><rect x="342" y="182" width="306" height="32" rx="6" fill="#1e242d"/><circle cx="356" cy="198" r="5" fill="#ffb454"/><text x="370" y="202" font-size="11.5" fill="#e6eaf0">No grain line — Pocket [M]</text><text x="346" y="288" font-size="11" fill="#8a94a3">Click a finding to zoom to the exact spot.</text></svg></div><div class="figcap">The QC panel lists findings by severity — <b style='color:#ff6b6b'>errors</b> first, then <b style='color:#ffb454'>warnings</b>. Clicking a finding zooms to the piece and the exact spot (shown here by the red locator ring).</div>
+<div class="tip">A clean file reads “✓ All checks passed.” QC results are also included in the PDF report and as a tab in the Spec workbook, so a factory gets the same audit you see.</div>
+<h3>Points of measure (📐 POM)</h3>
+<p>A point of measure is a measurement you define once — a chest width, an armhole length, a total waist — that the tool then <b>calculates automatically for every size</b> and flags if a size grades unevenly. This is the heart of a graded spec.</p>
+<p>Click <b>📐 POM</b> to open the points‑of‑measure panel (top‑left). Define a measure by choosing one of three types:</p>
+<ol>
+  <li><b>＋ P–P (point‑to‑point)</b> — for widths and lengths. Click the button, then click two points on the pattern. Each click snaps to the nearest vertex or edge (a magenta marker confirms the lock‑on). After the second point the name/tolerance box opens.</li>
+  <li><b>＋ Seam</b> — for a length that follows a curve (armhole, neckline). Click the button, then click two points on the <b>same</b> line; the tool measures along the edge between them.</li>
+  <li><b>＋ Girth</b> — for a value made of several parts (e.g. total waist = front + back). Click the button, then add segments one at a time: switch each segment between <b>P–P</b> and <b>Seam</b>, click its points, and repeat. The running segment count shows in the panel. Click <b>✓ Finish</b> when all segments are added.</li>
+</ol>
+<p>Then:</p>
+<ol>
+  <li><b>Name it and set a tolerance.</b> Give the measure a name (e.g. “Chest width”) and a <b>grade tolerance (±)</b>. The tolerance is entered in your current display units — the field label follows the unit selector. Click <b>Save</b>.</li>
+  <li><b>Read it across sizes.</b> Click the measure in the list to expand it. You’ll see its value for every size; a size is <b>flagged</b> when its grade step differs from the others by more than the tolerance — catching a mis‑graded size before it ships.</li>
+  <li><b>Jump to a size.</b> Click any size box in the expanded view to isolate and zoom to that size’s piece, with the measurement drawn on it.</li>
+  <li><b>Edit or remove.</b> Re‑select to change the name/tolerance; click the <b>✕</b> on a measure to delete it.</li>
+</ol>
+<div class="fig"><svg viewBox="0 0 680 400" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Inter,-apple-system,Segoe UI,Roboto,sans-serif"><rect x="0" y="0" width="680" height="400" rx="12" fill="#0f1216"/><text x="18" y="26" font-size="13" fill="#8a94a3">Points of measure — one measure, graded across every size</text>
+  <path d="M70,80 C70,60 130,52 160,56 L215,90 C255,120 220,165 196,196 L246,344 L70,352 Z" fill="#151a21" stroke="#e6eaf0" stroke-width="2" stroke-linejoin="round"/>
+  <line x1="135" y1="122" x2="135" y2="298" stroke="#37c98b" stroke-width="2"/>
+  <polygon points="129,132 135,120 141,132" fill="#37c98b"/><polygon points="129,288 135,300 141,288" fill="#37c98b"/>
+  <circle cx="206" cy="140" r="3.2" fill="#ffd93d"/>
+  <circle cx="223" cy="270" r="3.2" fill="#ffd93d"/>
+  <g><circle cx="150" cy="250" r="4" fill="none" stroke="#ff6b6b" stroke-width="1.4"/>
+     <line x1="142" y1="250" x2="158" y2="250" stroke="#ff6b6b" stroke-width="1.4"/>
+     <line x1="150" y1="242" x2="150" y2="258" stroke="#ff6b6b" stroke-width="1.4"/></g>
+  <rect x="122" y="200" width="56" height="20" rx="5" fill="rgba(13,16,21,0.78)"/>
+  <text x="150" y="214" font-size="12" font-weight="600" fill="#e6eaf0" text-anchor="middle">Front</text><line x1="70" y1="182" x2="196" y2="190" stroke="#22d3ee" stroke-width="2.4"/><rect x="65" y="177" width="10" height="10" fill="none" stroke="#ff4dd2" stroke-width="1.6"/><rect x="191" y="185" width="10" height="10" fill="none" stroke="#ff4dd2" stroke-width="1.6"/><text x="133" y="174" font-size="10.5" fill="#22d3ee" text-anchor="middle">Chest width</text><rect x="360" y="54" width="300" height="300" rx="9" fill="rgba(13,16,21,0.95)" stroke="#22d3ee" stroke-width="1.2"/><text x="376" y="80" font-size="13" font-weight="700" fill="#e6eaf0">Points of measure</text><rect x="372" y="94" width="276" height="34" rx="7" fill="#1e242d" stroke="#22d3ee" stroke-width="1.2"/><text x="382" y="115" font-size="12.5" fill="#e6eaf0">Chest width</text><text x="638" y="115" font-size="12.5" font-weight="700" fill="#22d3ee" text-anchor="end">30.5 cm  ±0.3</text><rect x="376" y="142" width="52" height="30" rx="5" fill="#0d1116" /><text x="402" y="154" font-size="10" fill="#8a94a3" text-anchor="middle">XS</text><text x="402" y="166" font-size="10.5" font-weight="600" fill="#e6eaf0" text-anchor="middle">29.2</text><rect x="430" y="142" width="52" height="30" rx="5" fill="#0d1116" /><text x="456" y="154" font-size="10" fill="#8a94a3" text-anchor="middle">S</text><text x="456" y="166" font-size="10.5" font-weight="600" fill="#e6eaf0" text-anchor="middle">29.9</text><rect x="484" y="142" width="52" height="30" rx="5" fill="#0d1116" /><text x="510" y="154" font-size="10" fill="#8a94a3" text-anchor="middle">M</text><text x="510" y="166" font-size="10.5" font-weight="600" fill="#e6eaf0" text-anchor="middle">30.5</text><rect x="538" y="142" width="52" height="30" rx="5" fill="#0d1116" /><text x="564" y="154" font-size="10" fill="#8a94a3" text-anchor="middle">L</text><text x="564" y="166" font-size="10.5" font-weight="600" fill="#e6eaf0" text-anchor="middle">31.2</text><rect x="592" y="142" width="52" height="30" rx="5" fill="#0d1116" stroke="#ffb454" stroke-width="1.2"/><text x="618" y="154" font-size="10" fill="#ffb454" text-anchor="middle">XL</text><text x="618" y="166" font-size="10.5" font-weight="600" fill="#ffb454" text-anchor="middle">32.1</text><text x="376" y="194" font-size="11" fill="#ffb454">⚠ XL grade step off &gt; tolerance</text><text x="376" y="214" font-size="11" fill="#8a94a3">Click a size to jump to that piece.</text><rect x="376" y="314" width="53" height="22" rx="11" fill="#1e242d" stroke="#2a323d" stroke-width="1"/><text x="402.5" y="329" font-size="11" fill="#e6eaf0" text-anchor="middle">+ P–P</text><rect x="454" y="314" width="60" height="22" rx="11" fill="#1e242d" stroke="#2a323d" stroke-width="1"/><text x="484" y="329" font-size="11" fill="#e6eaf0" text-anchor="middle">+ Seam</text><rect x="538" y="314" width="67" height="22" rx="11" fill="#1e242d" stroke="#2a323d" stroke-width="1"/><text x="571.5" y="329" font-size="11" fill="#e6eaf0" text-anchor="middle">+ Girth</text></svg></div><div class="figcap">A point‑to‑point <b>Chest width</b> defined once (left, snapped to two vertices) is calculated for every size in the panel (right). The <b style='color:#ffb454'>XL</b> box is flagged amber because its grade step exceeds the ±0.3 tolerance.</div>
+<p><b>Where they’re saved.</b> Points of measure are written into the DXF when you press <b>💾 Save DXF</b>, so they reload automatically the next time you open the file (the tab shows a <b>•</b> until you save). Use <b>⬇ Export .pomset</b> / <b>⬆ Import .pomset</b> only when you want to copy the same set of measures onto a <i>different</i> style.</p>
+<h3>Exports</h3>
+<p>Several ways to get work out of the tool, each a single click in the toolbar:</p>
+<ul>
+  <li><b>🖼 PNG</b> — saves a snapshot of exactly what’s on screen as an image file. Frame the view how you want it first (zoom, pan, layers), then click.</li>
+  <li><b>📄 PDF report</b> — opens a printable report in a new tab containing the view snapshot, the <b>QC results</b>, the <b>graded points‑of‑measure</b> chart, and a table of every annotation (type, note, category, piece with English translation, measurement, author, date). In the print dialog choose <b>“Save as PDF”</b> as the destination. <span style="color:var(--muted)">If nothing opens, allow pop‑ups for the site.</span></li>
+  <li><b>📊 Spec (.xlsx)</b> — downloads an Excel workbook with separate <b>mm / cm / inch</b> tabs; each lists every piece × size with width, height, perimeter, area and the deltas vs the sample size, plus a translated‑name column. It also adds a <b>Grade rules</b> tab (when a <code>.rul</code> is loaded), a <b>Points of measure</b> tab, a <b>QC report</b> tab, and a <b>Marker (yield)</b> tab.</li>
+  <li><b>🧮 Yield</b> — a fabric marker &amp; yield estimate: choose a fabric width and scope (one size, or one of each size), and it nests the pieces and reports the <b>marker length</b>, <b>fabric used</b> (m / yd) and <b>utilisation %</b>, with a visual marker layout you can Save as PDF. Great for costing. <span style="color:var(--muted)">It’s a bounding‑box estimate; a professional marker interlocks pieces and will use a bit less fabric.</span></li>
+  <li><b>📋 Tech Pack</b> — one consolidated document assembling the pattern snapshot, piece list (with materials, notches, drills), materials summary, graded POM chart, QC results, fabric yield, and annotations — ready to <b>Save as PDF</b> and hand to a factory.</li>
+  <li><b>💾 Save DXF</b> — writes your annotations and points of measure back into the DXF file (see §9).</li>
+</ul>
+<h3>Printing at actual size (🖨 1:1)</h3>
+<p>Use this to print a piece full‑size on paper — for a physical check or to cut a test.</p>
+<ol>
+  <li>Frame the piece(s) you want (isolate a piece, or show all). Click <b>🖨 1:1</b>. A new tab opens with a cover page followed by the pattern split into tiles across US Letter pages.</li>
+  <li>Print that tab. <b>Crucially, set scale to 100% / “Actual size” and turn OFF “Fit to page” or any scaling</b> — otherwise the print won’t be true size.</li>
+  <li>On the printed cover page, measure the <b>50&nbsp;mm calibration bar</b> with a ruler to confirm it’s exactly 50&nbsp;mm. If it’s off, your print scaling is still on.</li>
+  <li>Trim each tile to its border and tape them together using the <b>R#·C#</b> (row·column) labels to line them up.</li>
+</ol>
+
+<h2 id="install"><span class="n">8</span> Install as an app &amp; open .dxf directly</h2>
+<p>You can run the DXF Tool like a normal desktop application and even make it the default program for <code>.dxf</code> files, so a double‑click opens the pattern instantly. This uses your browser’s built‑in app install and works in <b>Chrome or Edge</b>.</p>
+<h3>Install it</h3>
+<ol>
+  <li>Visit the site once in Chrome or Edge and sign in.</li>
+  <li>Click <b>⤓ Install</b> in the toolbar when it appears, or click the small install icon on the right of the browser’s address bar.</li>
+  <li>Confirm the prompt. The tool now has its own window and icon, and opens without browser tabs and toolbars.</li>
+</ol>
+<h3>Open .dxf files by double‑click</h3>
+<ol>
+  <li>After installing, right‑click any <code>.dxf</code> file on your computer and choose <b>Open with → Choose another app</b> (Windows) or <b>Get Info → Open with</b> (Mac).</li>
+  <li>Pick the installed DXF Tool and set it as the default.</li>
+  <li>From then on, double‑clicking a <code>.dxf</code> opens it straight in the tool — each file in its own tab.</li>
+</ol>
+<div class="warn">Install and “open directly” require the <b>hosted https site</b> (they don’t work when the page is opened from a local file). Safari and Firefox can use every feature of the tool, but don’t support installing it or registering it as the <code>.dxf</code> file handler.</div>
+
+<h2 id="saving"><span class="n">9</span> Saving, tabs &amp; comparing revisions</h2>
+<h3>Saving your work</h3>
+<ol>
+  <li>Whenever a file has changes that aren’t saved yet — new annotations, edited notes, added points of measure — its tab shows a <b>•</b> dot.</li>
+  <li>Click <b>💾 Save DXF</b>. Your annotations and points of measure are written into the DXF itself.</li>
+  <li>If you opened the file with <b>📂 Open</b> (in Chrome/Edge) or via the file handler, the tool saves <b>in place</b> — the first time it asks for one‑time permission to edit that file; click Allow. Otherwise it downloads an annotated copy alongside your original.</li>
+</ol>
+<div class="tip">Everything that gets baked into the DXF — notes in any language, categories, authors, dates and points of measure — reloads automatically the next time anyone opens that file, so the pattern is self‑contained.</div>
+<h3>Auto‑save</h3>
+<p>Turn on the <b>💾 Auto‑save</b> switch in the sidebar’s File section to have the tool write your changes to the DXF automatically, a moment after you stop editing — no need to press Save DXF.</p>
+<ol>
+  <li>Open the file with <b>📂 Open</b> (or by double‑click if you’ve set the tool as the <code>.dxf</code> handler) in <b>Chrome or Edge</b>. This is what gives the tool permission to write back to the actual file.</li>
+  <li>Tick <b>💾 Auto‑save</b>. The first save may ask for one‑time permission to edit the file — click Allow.</li>
+  <li>Edit as normal. The status next to the switch shows <b>“Unsaved changes…”</b> then <b>“Saved 3:42 PM”</b> after each automatic save. Your preference is remembered for next time.</li>
+</ol>
+<div class="warn">Auto‑save writes <b>in place</b>, so it only works for files opened via <b>📂 Open</b> in Chrome/Edge. If a file was dragged in, or you’re in Safari/Firefox, the switch shows “Open via 📂 Open (Chrome/Edge) to auto‑save” and you should use <b>💾 Save DXF</b> (which downloads a copy) instead.</div>
+<h3>Tabs &amp; unsaved changes</h3>
+<ul>
+  <li>Switch between open files by clicking their tabs; add another with <b>+</b>.</li>
+  <li>Closing a tab that has unsaved changes prompts you to <b>Save</b>, <b>Save As…</b> (download a separate copy), <b>Discard</b>, or <b>Cancel</b> — so you never lose work by accident.</li>
+  <li><b>Undo / redo</b> (<kbd>Ctrl/Cmd+Z</kbd> and <kbd>Ctrl/Cmd+Shift+Z</kbd>) is multi‑level and independent per tab.</li>
+</ul>
+<h3>Compare two revisions</h3>
+<ol>
+  <li>Open both versions of the pattern (each in its own tab).</li>
+  <li>With one version active, open the <b>Compare</b> dropdown in the sidebar’s File panel and pick the other version.</li>
+  <li>The other revision’s matching pieces overlay the current view in <b>dashed magenta</b>, aligned by centroid, with a per‑piece <b>Δ</b> deviation label (“= match” when within tolerance) — a fast way to see exactly what moved between versions.</li>
+  <li>Click <b>⇄ Diff</b> (next to the Compare dropdown) for a written <b>“what changed” report</b>: pieces added, pieces removed, and a table of changed pieces with each one’s max deviation and width/height change. Save it as PDF for a revision record.</li>
+  <li>Set the dropdown back to <b>Compare: none</b> to clear the overlay.</li>
+</ol>
+
+<h2 id="keys"><span class="n">10</span> Keyboard shortcuts</h2>
+<table class="kbds"><tbody>
+<tr><td><kbd>V</kbd></td><td>Pan / select</td><td><kbd>M</kbd></td><td>Measure (straight)</td></tr>
+<tr><td><kbd>S</kbd></td><td>Seam / curved length</td><td><kbd>P</kbd></td><td>Point note</td></tr>
+<tr><td><kbd>L</kbd></td><td>Arrow / leader</td><td><kbd>B</kbd></td><td>Box / region</td></tr>
+<tr><td><kbd>X</kbd></td><td>Move pieces</td><td><kbd>F</kbd></td><td>Fit to view</td></tr>
+<tr><td><kbd>R</kbd></td><td>Toggle rulers</td><td><kbd>G</kbd></td><td>Grade nest</td></tr>
+<tr><td><kbd>Esc</kbd></td><td>Cancel / close editor</td><td></td><td></td></tr>
+<tr><td><kbd>Ctrl/Cmd+Z</kbd></td><td>Undo</td><td><kbd>Ctrl/Cmd+Shift+Z</kbd></td><td>Redo</td></tr>
+<tr><td><kbd>Shift</kbd> (drag ruler end)</td><td>Snap angle to 15°</td><td></td><td></td></tr>
+</tbody></table>
+<p style="color:var(--muted);font-size:13px">On Mac use <kbd>Cmd</kbd>; on Windows use <kbd>Ctrl</kbd>. Shortcuts are ignored while you’re typing in a note field.</p>
+
+<h2 id="tips"><span class="n">11</span> Tips &amp; tricks</h2>
+<h3>Measuring like a patternmaker</h3>
+<ul>
+  <li><b>Walk the seam.</b> Use <b>〰 Seam</b> to measure a curved edge length, then measure the edge it sews to — the readout flags whether they match. Catch mismatches before they hit the sample room or the 3D drape.</li>
+  <li><b>Snap corner‑to‑corner.</b> With the guide ruler (<b>⇥ Ruler</b>), drag an end near a pattern line — it locks onto the exact corner/edge (magenta marker).</li>
+  <li><b>Lock an angle.</b> Hold <kbd>Shift</kbd> while dragging a ruler end to snap to 15° steps (great for straight grain, 45° bias, right angles).</li>
+  <li><b>Keep a measurement.</b> Select a ruler → <b>📌 Annotate</b> to turn it into a saved dimension that travels with the file.</li>
+</ul>
+<h3>Working across sizes</h3>
+<ul>
+  <li><b>Load the <code>.rul</code> with the <code>.dxf</code></b> so size order, sample size and the grade table are exact.</li>
+  <li><b>Isolate before you nest.</b> Turn on <b>▤ Nest</b> and click a single base piece for a clean, uncluttered size overlay; add <b>↗ Grade</b> to see growth direction at each grade point.</li>
+  <li><b>Check the pockets.</b> Pieces that don’t grade show no grade vectors — a quick sanity check.</li>
+</ul>
+<h3>Reviewing &amp; sharing</h3>
+<ul>
+  <li><b>Tag every note.</b> Set your name once (sidebar → “Your name”); annotations are stamped with author, date and the nearest piece.</li>
+  <li><b>Colour‑code by intent.</b> Use categories (Issue = red, To‑do = blue, Approved = green…) so a factory can scan the pattern at a glance.</li>
+  <li><b>Compare styles in tabs.</b> Open several files; a <b>•</b> on a tab means unsaved changes. Use the <b>Compare</b> dropdown to overlay two revisions and read the Δ per piece.</li>
+  <li><b>Filter your notes.</b> On a busy pattern, filter the Annotations list by category (e.g. only Issues) or piece, then export just those with <b>⬇ CSV</b>.</li>
+  <li><b>Export the right thing:</b> <b>PNG</b> for a quick image, <b>PDF</b> for a report with the full annotation list, <b>Spec (.xlsx)</b> for measurements across every size (mm/cm/inch tabs + grade rules), <b>🖨 1:1</b> to print a piece at actual size for a physical check.</li>
+</ul>
+<h3>Getting around</h3>
+<ul>
+  <li><b>All tools always fit.</b> On smaller screens the toolbar wraps onto a second row — nothing is hidden. The <b>Units</b> selector (mm · cm · inch) lives at the right of the toolbar.</li>
+  <li><b>Undo freely.</b> <kbd>Ctrl/Cmd+Z</kbd> is multi‑level and per‑tab, so experiment without worry.</li>
+  <li><b>Turn on 🌐 EN</b> for English piece names; hover any name to see the original.</li>
+  <li><b>Install it</b> (Chrome/Edge) for a dedicated window and to open <code>.dxf</code> files by double‑click.</li>
+</ul>
+
+<h2 id="notes"><span class="n">12</span> Notes &amp; limits</h2>
+<ul>
+  <li>Guide rulers are measuring aids only — they aren’t saved into the DXF (convert one to an annotation to keep it).</li>
+  <li>The English translation covers common garment terms; unusual terms stay in their original characters (hover to see the original).</li>
+  <li>Seam‑allowance check needs a piece that has both a cut line and a sew line.</li>
+  <li>The tool reads AAMA/ASTM DXF; it’s tuned to these exports and may need adjustment for other CAD systems.</li>
+</ul>
+
+<p style="color:var(--muted);font-size:12.5px;margin-top:30px">Honeydew DXF Tool — user manual. Diagrams are faithful reproductions of the live interface.</p>
+</div></body></html>

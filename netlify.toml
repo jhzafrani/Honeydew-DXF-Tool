@@ -1,0 +1,13 @@
+# Netlify reads this file from the REPOSITORY ROOT only.
+# The site itself lives in netlify-site/ (index.html + PWA assets), so point
+# Netlify's publish directory there — otherwise it serves the repo root, which
+# has no index.html and every request 404s.
+[build]
+  publish = "netlify-site"
+
+# The service worker must never be cached, or clients keep running the old app
+# after a deploy (the cache name is bumped per release, e.g. adxf-vNN).
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"

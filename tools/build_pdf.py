@@ -9,7 +9,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.graphics.shapes import Drawing, Rect, String, Circle, Line, Group
 from svglib.svglib import svg2rlg
 
-BASE="/sessions/intelligent-inspiring-mayer/mnt/Brick Builders App"
+BASE="/sessions/intelligent-inspiring-mayer/mnt/Brick Builders App/Honeydew DXF Tool"
 OUT=os.path.join(BASE,"honeydew-dxf-tool-user-manual.pdf")
 LOGO=os.path.join(BASE,"honeydew-logo.svg")
 
@@ -167,6 +167,7 @@ steps([
  'The pattern draws in the canvas; the sidebar fills in with the file name, a materials summary, and the list of pieces.'])
 p('<font color="#2a4a39">You can add the .rul later too — just drag it onto the window while the pattern is open, and the size-aware features switch on.</font>',S_tip)
 p('<font color="#2a4a39">The tool reads AAMA/ASTM apparel DXFs and also plain CAD DXFs (geometry in the ENTITIES section, named layers like CUT / NET / GRAIN). If a file declares its units ($INSUNITS — e.g. inches) it is scaled correctly and the unit selector switches to match; files with no unit header are assumed millimetres.</font>',S_tip)
+p('<font color="#7a5a1e"><b>Generic CAD drawings.</b> Some files are not pattern exports at all — just a drawing where outlines are loose curves (SPLINE, arcs, lines), everything sits on layer 0, and there are no pieces, layers or names. The tool falls back to reading these: it converts the curves to outlines, joins loose ends into closed shapes, and treats each shape as a piece. You get outlines you can measure, arrange and sew — but with no pattern data the pieces are named Piece 1, 2, 3… with no sizes, grading, notches or grain. For the full feature set, ask for a proper AAMA/ASTM export.</font>',S_tip)
 h3("Move around the pattern")
 steps([
  '<b>Zoom</b> — scroll the wheel or pinch the trackpad. Zoom centers on the cursor, so point at what you want first. The step is gentle for fine control.',

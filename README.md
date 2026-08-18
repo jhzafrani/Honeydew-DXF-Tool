@@ -12,6 +12,11 @@ Chrome/Edge).
 
 - **View** AAMA/ASTM DXF and plain AutoCAD DXF; auto-detects units (`$INSUNITS`) and translates
   CJK piece names to English.
+- **Generic CAD fallback** — for drawings that aren't pattern exports (outlines as loose
+  `SPLINE`/`ARC`/`LINE` on layer `0`, no blocks or cut layer), the parser tessellates the curves
+  (NURBS via de Boor, arc/bulge support) and chains the loose segments into closed loops, treating
+  each loop as a piece. Outlines/measuring/arranging/sewing work; sizes, grading, notches, grain
+  and piece names are absent because the file doesn't carry them.
 - **Measure** — straight distance, walk-the-seam curved length, a draggable/rotatable guide ruler,
   and a "🔢 Measures" overlay that auto-dimensions a piece (or every piece in a selected size) with
   start/end reference dots.

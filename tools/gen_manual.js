@@ -1,5 +1,5 @@
 const fs=require("fs");
-const OUT="/sessions/intelligent-inspiring-mayer/mnt/Brick Builders App/honeydew-dxf-tool-user-manual.html";
+const OUT="/sessions/intelligent-inspiring-mayer/mnt/Brick Builders App/Honeydew DXF Tool/honeydew-dxf-tool-user-manual.html";
 const LOGO=fs.readFileSync("/sessions/intelligent-inspiring-mayer/mnt/outputs/honeydew-inline.svg","utf8").trim();
 const M=require("./mockups.js");   // realistic in-context tool mockups (SVG)
 const figure=(svg,cap)=>`<div class="fig">${svg}</div><div class="figcap">${cap}</div>`;
@@ -224,6 +224,7 @@ li{margin:5px 0}
 </ol>
 <div class="tip">You can add the <code>.rul</code> later, too: just drag it onto the window while the pattern is open. The sidebar hint updates to “.rul grade table loaded” and size‑aware features (grade nest, size order, grade‑rules export) switch on.</div>
 <div class="tip">The tool reads AAMA/ASTM apparel DXFs and also plain CAD DXFs (geometry in the ENTITIES section, named layers like CUT / NET / GRAIN). If a file declares its units in the header (<code>$INSUNITS</code> — e.g. inches), the tool <b>scales it correctly and switches the unit selector to match</b>, so measurements read true. Files with no unit header are assumed to be in millimetres.</div>
+<div class="tip"><b>Generic CAD drawings.</b> Some files aren’t pattern exports at all — just a drawing where the outlines are loose curves (<code>SPLINE</code>, arcs, lines), everything sits on layer <code>0</code>, and there are no pieces, layers or names. The tool now falls back to reading these: it converts the curves to outlines, joins the loose ends into <b>closed shapes</b>, and treats each shape as a piece. You get the outlines and can measure, arrange and sew them — but because the file carries no pattern data, pieces are named <i>Piece 1, 2, 3…</i> and there are no sizes, grading, notches or grain lines. For the full feature set, ask for a proper <b>AAMA/ASTM</b> export.</div>
 
 <h3>Move around the pattern</h3>
 <ol>

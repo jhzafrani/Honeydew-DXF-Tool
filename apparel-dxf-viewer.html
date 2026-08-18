@@ -521,19 +521,90 @@ function normLayer(l){
 }
 // Parse geometry entities that live directly in the ENTITIES section (generic DXFs
 // that don't wrap each piece in a BLOCK). Returns raw entities in drawing units.
+/* ---- curve tessellation (plain CAD drawings use SPLINE / ARC / bulges) ---- */
+// NURBS point via de Boor; handles any degree, clamped or periodic knots, optional weights
+function _nurbsPoint(cps, knots, deg, w, t){
+  const n=cps.length;
+  let k=deg; while(k<n-1 && knots[k+1]<=t) k++;
+  const d=[];
+  for(let j=0;j<=deg;j++){ const i=k-deg+j; const wt=(w&&w[i]!=null)?w[i]:1;
+    d[j]=[cps[i][0]*wt, cps[i][1]*wt, wt]; }
+  for(let r=1;r<=deg;r++)
+    for(let j=deg;j>=r;j--){
+      const i=k-deg+j; const den=(knots[i+deg-r+1]-knots[i]);
+      const a=den?((t-knots[i])/den):0;
+      d[j]=[ d[j-1][0]+a*(d[j][0]-d[j-1][0]),
+             d[j-1][1]+a*(d[j][1]-d[j-1][1]),
+             d[j-1][2]+a*(d[j][2]-d[j-1][2]) ];
+    }
+  const h=d[deg][2]||1;
+  return [d[deg][0]/h, d[deg][1]/h];
+}
+function tessSpline(sp){
+  const cps=sp.cps||[], knots=sp.knots||[], fit=sp.fit||[];
+  const deg=sp.deg||3;
+  if(cps.length<2) return fit.length>1?fit.slice():null;         // only fit points available
+  if(cps.length<=deg || knots.length<cps.length+deg+1) return cps.slice();   // malformed → control polygon
+  const t0=knots[deg], t1=knots[cps.length];
+  if(!(t1>t0)) return cps.slice();
+  const steps=Math.min(240, Math.max(16, cps.length*8));
+  const pts=[];
+  for(let i=0;i<=steps;i++){
+    let t=t0+(t1-t0)*i/steps; if(i===steps) t=t1-1e-9;
+    pts.push(_nurbsPoint(cps,knots,deg,sp.wts,t));
+  }
+  if(sp.closed && pts.length>1) pts.push(pts[0].slice());
+  return pts;
+}
+function tessArc(cx,cy,r,a0,a1){                    // degrees, CCW
+  let sweep=a1-a0; while(sweep<=0) sweep+=360; if(sweep>360) sweep=360;
+  const steps=Math.max(6, Math.ceil(sweep/6)); const pts=[];
+  for(let i=0;i<=steps;i++){ const a=(a0+sweep*i/steps)*Math.PI/180; pts.push([cx+r*Math.cos(a), cy+r*Math.sin(a)]); }
+  return pts;
+}
+function tessBulge(p0,p1,b){                        // LWPOLYLINE bulge arc between two vertices
+  if(!b) return [p0,p1];
+  const dx=p1[0]-p0[0], dy=p1[1]-p0[1], c=Math.hypot(dx,dy); if(!c) return [p0,p1];
+  const theta=4*Math.atan(b), r=Math.abs(c/(2*Math.sin(theta/2)));
+  const mx=(p0[0]+p1[0])/2, my=(p0[1]+p1[1])/2;
+  const h=Math.sqrt(Math.max(0,r*r-(c/2)*(c/2)))*(Math.abs(theta)>Math.PI?-1:1)*(b>0?1:-1);
+  const cx=mx-h*dy/c, cy=my+h*dx/c;
+  const a0=Math.atan2(p0[1]-cy,p0[0]-cx), a1=Math.atan2(p1[1]-cy,p1[0]-cx);
+  let sweep=a1-a0; if(b>0){ while(sweep<0) sweep+=2*Math.PI; } else { while(sweep>0) sweep-=2*Math.PI; }
+  const steps=Math.max(4, Math.ceil(Math.abs(sweep)/(Math.PI/30))); const pts=[];
+  for(let i=0;i<=steps;i++){ const a=a0+sweep*i/steps; pts.push([cx+r*Math.cos(a), cy+r*Math.sin(a)]); }
+  return pts;
+}
 function parseLooseEntities(pairs){
   const out=[]; let sec=null, e=null, poly=null, v=null;
+  const flush=sp=>{                                  // convert a finished curve entity into a polyline
+    if(sp.type==="spline"){ const pts=tessSpline(sp); if(pts&&pts.length>1) out.push({type:"poly",layer:sp.layer,closed:!!sp.closed,verts:pts}); }
+    else if(sp.type==="arc"){ const pts=tessArc(sp.cx,sp.cy,sp.r,sp.a0,sp.a1); if(pts.length>1) out.push({type:"poly",layer:sp.layer,closed:false,verts:pts}); }
+    else if(sp.type==="circle"){ const pts=tessArc(sp.cx,sp.cy,sp.r,0,360); out.push({type:"poly",layer:sp.layer,closed:true,verts:pts}); }
+    else if(sp.type==="lw"){
+      const vs=sp.pts||[]; if(vs.length<2) return; const acc=[];
+      for(let i=0;i<vs.length-1;i++){ const seg=tessBulge(vs[i],vs[i+1],sp.bul[i]||0); seg.forEach((p,k)=>{ if(!(k===0&&acc.length)) acc.push(p); }); }
+      if(sp.closed){ const seg=tessBulge(vs[vs.length-1],vs[0],sp.bul[vs.length-1]||0); seg.forEach((p,k)=>{ if(k) acc.push(p); }); }
+      if(acc.length>1) out.push({type:"poly",layer:sp.layer,closed:!!sp.closed,verts:acc});
+    }
+  };
+  const CURVE={spline:1,arc:1,circle:1,lw:1};
   for(let i=0;i<pairs.length;i++){
     const [code,valRaw]=pairs[i]; const val=(valRaw||"").trim();
     if(code==="0"){
-      if(e && e.type!=="poly" && e!==v){ if(sec==="ENTITIES") out.push(e); }
+      if(e && CURVE[e.type]){ if(sec==="ENTITIES") flush(e); }
+      else if(e && e.type!=="poly" && e!==v){ if(sec==="ENTITIES") out.push(e); }
       if(val==="ENDSEC"){ sec=null; e=null; poly=null; }
       else if(val==="POLYLINE"){ poly={type:"poly",layer:"0",closed:false,verts:[]}; e=poly; }
       else if(val==="VERTEX"){ v={x:0,y:0,layer:"0"}; e=v; }
       else if(val==="SEQEND"){ if(poly&&sec==="ENTITIES") out.push(poly); poly=null; e=null; }
       else if(val==="LINE"){ e={type:"line",layer:"0",x1:0,y1:0,x2:0,y2:0}; }
       else if(val==="POINT"){ e={type:"point",layer:"0",x:0,y:0}; }
-      else if(val==="TEXT"){ e={type:"text",layer:"0",x:0,y:0,str:""}; }
+      else if(val==="TEXT"||val==="MTEXT"){ e={type:"text",layer:"0",x:0,y:0,str:""}; }
+      else if(val==="SPLINE"){ e={type:"spline",layer:"0",deg:3,closed:false,cps:[],knots:[],wts:[],fit:[],_p:null}; }
+      else if(val==="ARC"){ e={type:"arc",layer:"0",cx:0,cy:0,r:0,a0:0,a1:0}; }
+      else if(val==="CIRCLE"){ e={type:"circle",layer:"0",cx:0,cy:0,r:0}; }
+      else if(val==="LWPOLYLINE"){ e={type:"lw",layer:"0",closed:false,pts:[],bul:[],_x:null}; }
       else { e=null; }   // SECTION / INSERT / others handled elsewhere
       continue;
     }
@@ -541,6 +612,28 @@ function parseLooseEntities(pairs){
     if(!e) continue;
     if(e===v){ if(code==="8") v.layer=val; else if(code==="10") v.x=parseFloat(val);
       else if(code==="20"){ v.y=parseFloat(val); if(poly){ poly.verts.push([v.x,v.y]); poly.layer=v.layer; } e=null; } }
+    else if(e.type==="spline"){
+      if(code==="8") e.layer=val;
+      else if(code==="70"){ const f=parseInt(val)||0; e.closed=(f&1)===1; }
+      else if(code==="71") e.deg=parseInt(val)||3;
+      else if(code==="40") e.knots.push(parseFloat(val));
+      else if(code==="41") e.wts.push(parseFloat(val));
+      else if(code==="10") e._p=[parseFloat(val),0];
+      else if(code==="20"){ if(e._p){ e._p[1]=parseFloat(val); e.cps.push(e._p); e._p=null; } }
+      else if(code==="11") e._f=[parseFloat(val),0];
+      else if(code==="21"){ if(e._f){ e._f[1]=parseFloat(val); e.fit.push(e._f); e._f=null; } }
+    }
+    else if(e.type==="arc"||e.type==="circle"){
+      if(code==="8") e.layer=val; else if(code==="10") e.cx=parseFloat(val); else if(code==="20") e.cy=parseFloat(val);
+      else if(code==="40") e.r=parseFloat(val); else if(code==="50") e.a0=parseFloat(val); else if(code==="51") e.a1=parseFloat(val);
+    }
+    else if(e.type==="lw"){
+      if(code==="8") e.layer=val;
+      else if(code==="70") e.closed=(parseInt(val)&1)===1;
+      else if(code==="10") e._x=parseFloat(val);
+      else if(code==="20"){ if(e._x!=null){ e.pts.push([e._x,parseFloat(val)]); e.bul.push(0); e._x=null; } }
+      else if(code==="42"){ if(e.bul.length) e.bul[e.bul.length-1]=parseFloat(val); }
+    }
     else if(e.type==="poly"){ if(code==="8") e.layer=val; else if(code==="70") e.closed=(parseInt(val)&1)===1; }
     else if(e.type==="line"){ if(code==="8")e.layer=val; else if(code==="10")e.x1=parseFloat(val); else if(code==="20")e.y1=parseFloat(val); else if(code==="11")e.x2=parseFloat(val); else if(code==="21")e.y2=parseFloat(val); }
     else if(e.type==="point"){ if(code==="8")e.layer=val; else if(code==="10")e.x=parseFloat(val); else if(code==="20")e.y=parseFloat(val); }
@@ -551,9 +644,75 @@ function parseLooseEntities(pairs){
 function _bbVs(vs){ let a=1e9,b=1e9,c=-1e9,d=-1e9; vs.forEach(([x,y])=>{if(x<a)a=x;if(y<b)b=y;if(x>c)c=x;if(y>d)d=y;}); return [a,b,c,d]; }
 // Group loose entities into pieces: one piece per cut-line polygon, other geometry
 // assigned to the piece whose bounding box contains it. Falls back to a single piece.
+// Plain CAD drawings have no cut layer — the outlines are just loose curves/lines.
+// Chain segments end-to-end into closed loops and treat each loop as a piece outline.
+function chainLoops(loose){
+  const segs=[];
+  loose.forEach(e=>{
+    if(e.type==="poly" && e.verts && e.verts.length>1) segs.push(e.verts.map(v=>v.slice()));
+    else if(e.type==="line") segs.push([[e.x1,e.y1],[e.x2,e.y2]]);
+  });
+  if(!segs.length) return null;
+  // tolerance: scale-aware, so it works for mm or inch drawings
+  let mnx=1e18,mny=1e18,mxx=-1e18,mxy=-1e18;
+  segs.forEach(s=>s.forEach(p=>{ if(p[0]<mnx)mnx=p[0]; if(p[0]>mxx)mxx=p[0]; if(p[1]<mny)mny=p[1]; if(p[1]>mxy)mxy=p[1]; }));
+  const span=Math.max(mxx-mnx, mxy-mny)||1;
+  const tol=Math.max(span*1e-4, 1e-6);
+  const near=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1])<=tol;
+  const used=new Array(segs.length).fill(false);
+  const loops=[], strays=[];
+  for(let i=0;i<segs.length;i++){
+    if(used[i]) continue;
+    used[i]=true;
+    let chain=segs[i].slice();
+    if(near(chain[0],chain[chain.length-1]) && chain.length>2){ loops.push(chain); continue; }  // already closed
+    let grew=true;
+    while(grew){
+      grew=false;
+      const head=chain[0], tail=chain[chain.length-1];
+      for(let j=0;j<segs.length;j++){
+        if(used[j]) continue;
+        const s=segs[j], a=s[0], b=s[s.length-1];
+        if(near(tail,a)){ chain=chain.concat(s.slice(1)); used[j]=true; grew=true; }
+        else if(near(tail,b)){ chain=chain.concat(s.slice(0,-1).reverse()); used[j]=true; grew=true; }
+        else if(near(head,b)){ chain=s.slice(0,-1).concat(chain); used[j]=true; grew=true; }
+        else if(near(head,a)){ chain=s.slice(1).reverse().concat(chain); used[j]=true; grew=true; }
+        if(grew) break;
+      }
+      if(chain.length>2 && near(chain[0],chain[chain.length-1])) break;   // closed
+    }
+    if(chain.length>2 && near(chain[0],chain[chain.length-1])) loops.push(chain);
+    else strays.push(chain);
+  }
+  // discard degenerate loops (slivers / tiny artefacts)
+  const area=vs=>{ let a=0; for(let k=0;k<vs.length-1;k++) a+=vs[k][0]*vs[k+1][1]-vs[k+1][0]*vs[k][1]; return Math.abs(a)/2; };
+  const minArea=(span*0.01)**2;
+  const keep=loops.filter(l=>area(l)>=minArea);
+  return {loops:keep.length?keep:loops, strays};
+}
 function buildPiecesFromLoose(loose, pieces){
   loose.forEach(e=>{ e.layer=normLayer(e.layer); });
-  const cuts=loose.filter(e=>e.type==="poly" && e.layer==="1");
+  let cuts=loose.filter(e=>e.type==="poly" && e.layer==="1");
+  // No cut layer at all (generic CAD export) → derive outlines by chaining segments
+  if(!cuts.length){
+    const ch=chainLoops(loose);
+    if(ch && ch.loops.length){
+      const texts=loose.filter(e=>e.type==="text");
+      const pts=loose.filter(e=>e.type==="point");
+      ch.loops.forEach((vs,i)=>{
+        const bb=_bbVs(vs);
+        const inBB=p=>p[0]>=bb[0]-1&&p[0]<=bb[2]+1&&p[1]>=bb[1]-1&&p[1]<=bb[3]+1;
+        const geo=[{type:"poly",layer:"1",closed:true,verts:vs}];
+        pts.filter(p=>inBB([p.x,p.y])).forEach(p=>geo.push({type:"point",layer:p.layer,x:p.x,y:p.y}));
+        const labels=texts.filter(t=>inBB([t.x,t.y])).map(t=>({x:t.x,y:t.y,str:(t.str||"").trim(),layer:t.layer})).filter(l=>l.str);
+        let name="Piece "+(i+1);
+        const nl=labels.find(l=>l.str.length>2 && !/^[\d.\s\/"'\-]+$/.test(l.str));
+        if(nl) name=nl.str.split(/\s{2,}|,|·/)[0].trim()||name;
+        pieces.push({meta:{name, _derived:true}, geo, labels, bbox:bb});
+      });
+      return;
+    }
+  }
   const groups = cuts.length ? cuts.map(cut=>({cut, geo:[], labels:[], bb:_bbVs(cut.verts)}))
                              : [{cut:null, geo:[], labels:[], bb:[-1e18,-1e18,1e18,1e18]}];
   const cen=e=> e.verts ? (b=>[(b[0]+b[2])/2,(b[1]+b[3])/2])(_bbVs(e.verts))
@@ -731,7 +890,9 @@ function parseDXF(buffer){
   });
 
   // ---- fallback: geometry that lives directly in the ENTITIES section (generic CAD DXF) ----
-  if(pieces.length===0){
+  // (also fires when the only blocks are empty *MODEL_SPACE / *PAPER_SPACE stubs)
+  if(pieces.length===0 || !pieces.some(p=>p.geo && p.geo.length)){
+    pieces.length=0;
     const loose=parseLooseEntities(pairs);
     if(loose.some(e=>e.type==="poly"||e.type==="line"||e.type==="point")) buildPiecesFromLoose(loose, pieces);
   }

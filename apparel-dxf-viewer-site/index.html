@@ -314,7 +314,7 @@
       <button class="btn" id="arrowBtn" title="Arrow / leader — click anchor then target (L)">↗ Arrow</button>
       <button class="btn" id="boxBtn" title="Box / region — click two corners (B)">▭ Box</button>
       <div class="sep"></div>
-      <button class="btn" id="sewBtn" title="Sew — pair edges between pieces to build a seam map (for measuring &amp; 3D)">🧵 Sew</button>
+      <button class="btn" id="sewBtn" title="Sew — pair edges between pieces to build a seam map and check that joining seams match in length">🧵 Sew</button>
       <button class="btn" id="sew3dBtn" title="3D sew preview — drape the pieces together using your seam map (experimental)">🪡 3D</button>
       <div class="sep"></div>
       <button class="btn" id="undoBtn" title="Undo (Ctrl/Cmd+Z)">↶</button>
@@ -3995,6 +3995,10 @@ document.getElementById("pomName").addEventListener("keydown",e=>{ if(e.key==="E
    Hand-rolled soft-body (position-based dynamics) + software renderer.
    Consumes model.seams (no auto-pairing).
    ============================================================ */
+// Feature flag — the 3D drape is still rough, so it's hidden from the toolbar.
+// Flip to true (and redeploy) to bring the 🪡 3D button back; all the code below
+// stays intact and tested in the meantime.
+const ENABLE_3D = false;
 const SEW3D = { open:false, running:false, raf:0, body:true, wire:false,
   nodes:[], pn:[], flat:[], inv:[], tris:[], cons:[], seamCons:[], pieceOf:[],
   bound:1, Rw:1, Rb:1, dist:1, zoom:1, cam:{yaw:0.7, pitch:-0.35}, ramp:0, drag:null };
@@ -4119,6 +4123,7 @@ function sew3dSize(){ const cv=document.getElementById("sew3dcv"); if(!cv) retur
   cv.width=Math.max(2,Math.round(r.width)); cv.height=Math.max(2,Math.round(r.height)); }
 function sew3dLoop(){ const S=SEW3D; if(!S.open) return; if(S.running) step3D(); draw3D(); S.raf=requestAnimationFrame(sew3dLoop); }
 function open3D(){
+  if(!ENABLE_3D) return;                 // feature disabled — see ENABLE_3D above
   if(!model){ alert("Load a DXF first."); return; }
   if(!seams||!seams.length){ alert("Pair some seams first with the 🧵 Sew tool, then open the 3D preview."); return; }
   const S=SEW3D; S.open=true; S.running=true; S.ramp=0;
@@ -4129,6 +4134,7 @@ function open3D(){
   cancelAnimationFrame(S.raf); sew3dLoop();
 }
 function close3D(){ const S=SEW3D; S.open=false; S.running=false; cancelAnimationFrame(S.raf); document.getElementById("sew3d").style.display="none"; }
+if(!ENABLE_3D){ const b3=document.getElementById("sew3dBtn"); if(b3) b3.style.display="none"; }
 document.getElementById("sew3dBtn").onclick=open3D;
 document.getElementById("s3Close").onclick=close3D;
 document.getElementById("s3Play").onclick=()=>{ const S=SEW3D; S.running=!S.running; document.getElementById("s3Play").textContent=S.running?"⏸ Pause":"▶ Play"; };

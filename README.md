@@ -31,6 +31,9 @@ Chrome/Edge).
   notches) to build a seam map with numbered tags, direction and length-match flags.
 - **🪡 3D** — experimental preview that drapes the pieces together using the seam map (hand-rolled
   position-based-dynamics soft body + software renderer; no CDN).
+  **Currently disabled** — the drape still needs work, so the toolbar button is hidden behind the
+  `ENABLE_3D` flag in `apparel-dxf-viewer.html`. The code is intact and still covered by
+  `tools/tests/sew3dtest.js`; set `ENABLE_3D = true` and redeploy to bring it back.
 - **Export** — PNG, PDF report, Excel spec sheet, fabric marker/yield, tech pack, 1:1 tiled print.
 
 All annotations, POMs, renames, artboard layout (move/rotate/flip) and seam maps are stored inside

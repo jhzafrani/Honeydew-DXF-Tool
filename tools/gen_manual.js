@@ -11,7 +11,7 @@ const groups=[
   [["✥","Pan"],["✋","Move"]],
   [["📏","Measure"],["〰","Seam"]],
   [["📌","Point"],["↗","Arrow"],["▭","Box"]],
-  [["🧵","Sew"],["🪡","3D"]],
+  [["🧵","Sew"]],
   [["↶",""],["↷",""]],
   [["⤢","Fit"],["▦","All"],["▤","Nest"],["↗","Grade"],["⌷","SA"],["✔","QC"],["📐","POM"],["🔢","Measures"]],
   [["⊞","Grid"],["📏","Rulers"],["⇥","Ruler"]],
@@ -83,8 +83,7 @@ const refs=[
 ["📌 Point","Drop a point note where you click. Shortcut P."],
 ["↗ Arrow","Leader arrow: click the anchor, then the target. Shortcut L."],
 ["▭ Box","Region box: click two opposite corners. Shortcut B."],
-["🧵 Sew","Manual seam pairing — click an edge on one piece, then its matching edge on another, to pair them into a seam. Each piece's outline is split into clickable edges at its corners and notches, so seams can be matched notch‑to‑notch. Paired edges get a matching numbered tag and colour, a dashed connector, sew‑direction arrows, and a length readout that flags mismatches. The Seams panel lists them (flip direction with ⇄, delete with ✕). Seam maps are saved in the DXF and drive the 3D sew preview."],
-["🪡 3D","3D sew preview (experimental) — drapes the pieces together in 3D using the seam map you built with 🧵 Sew. Pieces start wrapped around a body form and the paired seams stitch together. Drag to orbit, scroll to zoom; ⏸/▶ pause or resume, ↺ Reset restarts the drape, 🧍 Body toggles the body form, ▦ Wire shows the mesh. Pair some seams first, then open it."],
+["🧵 Sew","Manual seam pairing — click an edge on one piece, then its matching edge on another, to pair them into a seam. Each piece's outline is split into clickable edges at its corners and notches, so seams can be matched notch‑to‑notch. Paired edges get a matching numbered tag and colour, a dashed connector, sew‑direction arrows, and a length readout that flags mismatches. The Seams panel lists them (flip direction with ⇄, delete with ✕). Seam maps are saved in the DXF."],
 ["↶ Undo","Undo the last annotation change (multi‑level, per tab). Ctrl/Cmd+Z."],
 ["↷ Redo","Redo. Ctrl/Cmd+Shift+Z (or Ctrl+Y)."],
 ["⤢ Fit","Fit the current piece/selection to the window. Shortcut F."],
@@ -344,16 +343,6 @@ ${figure(M.ruler,"The guide ruler laid across a piece. Ticks read from the <b>0<
   <li>The <b>Seams panel</b> lists every pair. Click one to highlight it, <b>⇄</b> flips the sew direction, and <b>✕</b> deletes it.</li>
 </ol>
 <div class="tip">Seam maps are saved inside the DXF with <b>💾 Save DXF</b>, so they travel with the file and reload where you left them. Pieces are matched by name, so pair seams on the size you’re working with.</div>
-
-<h3>3D sew preview (🪡 3D) — experimental</h3>
-<p>Once you’ve paired some seams, click <b>🪡 3D</b> to see the pieces <b>drape together in 3D</b>. The tool wraps the pieces around a body form and stitches the seams you defined — so what you see comes straight from your seam map, not a guess.</p>
-<ol>
-  <li>Pair the seams you care about with <b>🧵 Sew</b> first, then click <b>🪡 3D</b>.</li>
-  <li><b>Drag</b> to orbit the view and <b>scroll</b> to zoom.</li>
-  <li><b>⏸ / ▶</b> pauses or resumes the drape, <b>↺ Reset</b> restarts it, <b>🧍 Body</b> toggles the body form, and <b>▦ Wire</b> shows the mesh instead of solid fabric.</li>
-  <li><b>✕ Close</b> returns to the flat pattern.</li>
-</ol>
-<div class="tip">This is an early preview meant for checking how pieces come together, not a precise fabric simulation. The more of the garment’s seams you pair, the more complete the drape.</div>
 
 <h2 id="annotate">5 · Annotations</h2>
 <p>Annotations are notes you place on the pattern to flag issues, ask questions or approve details. There are four kinds — <b>📌 Point</b> (a single pin), <b>↗ Arrow</b> (a leader from an anchor to a target), <b>▭ Box</b> (a region), and pinned <b>measurements</b> — and they’re saved inside the DXF, so they travel with the file to the factory and reload exactly where you left them.</p>

@@ -93,7 +93,7 @@ acc.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,-1),colors.HexColor("#f2f7f3"))
 story.append(acc)
 
 # ---------- toolbar diagram (native, no emoji) ----------
-_TBLABELS=["Open","Pan","Move","Measure","Seam","Point","Arrow","Box","Sew","3D","Undo","Redo","Fit","All","Nest",
+_TBLABELS=["Open","Pan","Move","Measure","Seam","Point","Arrow","Box","Sew","Undo","Redo","Fit","All","Nest",
     "Grade","SA","QC","POM","Measures","Grid","Rulers","Ruler","PNG","PDF","Spec","Yield","Tech Pack","1:1",
     "Save DXF","Save As","Install","Units"]
 TB=[(str(i+1),lab) for i,lab in enumerate(_TBLABELS)]
@@ -191,8 +191,7 @@ story.append(ref_table([(str(i+1),b,c) for i,(b,c) in enumerate([
  ("Point","Drop a point note. (P)"),
  ("Arrow","Leader: click anchor then target. (L)"),
  ("Box","Region: click two corners. (B)"),
- ("Sew","Manual seam pairing — click an edge on one piece, then its matching edge on another, to pair them into a seam. Outlines are split into clickable edges at corners and notches, so seams can be matched notch-to-notch. Paired edges get matching numbered tags, a connector, direction arrows and a length readout that flags mismatches. The Seams panel lists them (⇄ flip, ✕ delete). Saved in the DXF; drives the 3D preview."),
- ("3D","3D sew preview (experimental) — drapes the pieces together in 3D using your seam map. Pieces wrap around a body form and the paired seams stitch together. Drag to orbit, scroll to zoom; Pause/Play, Reset, Body toggle, Wire view. Pair some seams first, then open it."),
+ ("Sew","Manual seam pairing — click an edge on one piece, then its matching edge on another, to pair them into a seam. Outlines are split into clickable edges at corners and notches, so seams can be matched notch-to-notch. Paired edges get matching numbered tags, a connector, direction arrows and a length readout that flags mismatches. The Seams panel lists them (⇄ flip, ✕ delete). Saved in the DXF."),
  ("Undo","Undo the last annotation change (multi-level, per tab). Ctrl/Cmd+Z."),
  ("Redo","Redo. Ctrl/Cmd+Shift+Z."),
  ("Fit","Fit the current piece/selection to the window. (F)"),
@@ -285,14 +284,6 @@ steps(['Click <b>Sew</b>. Each piece’s outline lights up, split into clickable
  'Each seam gets a matching numbered tag and colour on both edges, a dashed connector, direction arrows, and a length readout (e.g. 24.0 / 24.1 cm, red ⚠ if the edges differ by more than tolerance).',
  'The Seams panel lists every pair — click to highlight, ⇄ flip sew direction, ✕ delete.'])
 p('<font color="#2a4a39">Seam maps are saved in the DXF with Save DXF and reload with the file. Pieces are matched by name, so pair seams on the size you are working with.</font>',S_tip)
-
-h3("3D sew preview (3D) — experimental")
-p("Once you have paired some seams, click <b>3D</b> to see the pieces <b>drape together in 3D</b>. The tool wraps the pieces around a body form and stitches the seams you defined — what you see comes straight from your seam map, not a guess.")
-steps(['Pair the seams you care about with <b>Sew</b> first, then click <b>3D</b>.',
- 'Drag to orbit the view; scroll to zoom.',
- 'Pause/Play the drape, Reset restarts it, Body toggles the form, Wire shows the mesh.',
- 'Close returns to the flat pattern.'])
-p('<font color="#7a5a1e">This is an early preview for checking how pieces come together, not a precise fabric simulation. The more seams you pair, the more complete the drape.</font>',S_tip)
 
 h2("5","Annotations")
 p("Annotations are notes you place on the pattern to flag issues, ask questions or approve details. Four kinds — <b>Point</b> (a pin), <b>Arrow</b> (a leader), <b>Box</b> (a region), and pinned <b>measurements</b> — all saved inside the DXF so they travel with the file.")

@@ -1567,6 +1567,7 @@ function mirrorPairs(){
     for(let j=i+1;j<info.length;j++){ if(used.has(info[j].i)) continue;
       const A=info[i],B=info[j];
       if(A.p.meta.size!==B.p.meta.size) continue;
+      if((A.p.meta.material||"")!==(B.p.meta.material||"")) continue;   // left/right share a material; fabric + interfacing copies don't pair
       if(Math.abs(A.w-B.w)>1.5||Math.abs(A.h-B.h)>1.5) continue;
       if(Math.abs(A.area-B.area)>Math.max(80,A.area*0.01)) continue;
       if(_mirrorOverlayDev(A.cut,B.cut)<=3){ pairs.push([A.i,B.i]); used.add(A.i); used.add(B.i); break; }

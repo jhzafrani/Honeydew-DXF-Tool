@@ -17,3 +17,6 @@ __pycache__/
 
 # Netlify deploy artifacts
 *.zip
+
+# Netlify CLI/connector link state
+.netlify/

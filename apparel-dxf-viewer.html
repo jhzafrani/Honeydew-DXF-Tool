@@ -759,7 +759,7 @@ function parseDXF(buffer){
     // 0 / absent → leave the mm base untouched (AAMA files are already mm)
   }
 
-  const blocks = {};      // name -> {ents:[], base:[x,y], meta:{}, texts:[]}
+  const blocks = [];      // file order: {name, ents:[], base:[x,y], meta:{}, texts:[]} — names can repeat
   const inserts = [];     // {name, x, y}
   let section=null, curBlock=null, ent=null, poly=null;
 
@@ -778,7 +778,7 @@ function parseDXF(buffer){
       if(ent && ent.type!=="POLYLINE" && curBlock){ curBlock.ents.push(ent); ent=null; }
       if(val==="SECTION"){ section = (pairs[i+1] && pairs[i+1][0]==="2") ? pairs[i+2] && "" : ""; }
       if(val==="BLOCK"){ curBlock={name:"",ents:[],base:[0,0],meta:{},texts:[]}; ent=null; poly=null; }
-      else if(val==="ENDBLK"){ if(curBlock){ blocks[curBlock.name]=curBlock; } curBlock=null; }
+      else if(val==="ENDBLK"){ if(curBlock){ blocks.push(curBlock); } curBlock=null; }
       else if(val==="POLYLINE"){ poly={type:"POLYLINE",layer:"0",closed:false,verts:[]}; ent=poly; }
       else if(val==="VERTEX"){ ent={type:"VERTEX",layer:"0",x:0,y:0}; }
       else if(val==="SEQEND"){ if(poly && curBlock){ curBlock.ents.push(poly); } poly=null; ent=null; }
@@ -856,11 +856,20 @@ function parseDXF(buffer){
     "Material":"material","Category":"category","Annotation":"annotation"
   };
   const pieces = [];
-  const insByName = {};
-  inserts.forEach(ins=>{ if(ins.name) insByName[ins.name]=ins; });
+  // Some pattern CADs reuse one block name for several pieces in a size (two different backs
+  // both "STYLE.后面.XS"). Pair each block with its own INSERT in file order; a block repeating
+  // the previous same-named block's Category (fabric + interfacing copy of one piece) has no
+  // INSERT of its own and shares that one.
+  const insQueue = {}, lastIns = {};
+  inserts.forEach(ins=>{ if(ins.name) (insQueue[ins.name]=insQueue[ins.name]||[]).push(ins); });
+  const blockCategory = b => { const t=b.ents.find(e=>e.type==="TEXT" && (e.str||"").trim().startsWith("Category:"));
+    return t ? t.str.trim().slice(9).trim() : ""; };
 
-  Object.values(blocks).forEach(b=>{
-    const ins = insByName[b.name] || {x:0,y:0};
+  blocks.forEach(b=>{
+    const cat = blockCategory(b), prev = lastIns[b.name];
+    const ins = (prev && cat!=="" && prev.cat===cat) ? prev.ins
+      : (insQueue[b.name] && insQueue[b.name].shift()) || (prev && prev.ins) || {x:0,y:0};
+    lastIns[b.name] = {cat, ins};
     const dx=ins.x||0, dy=ins.y||0;
     const meta={name:b.name};
     const geo=[]; const labels=[];
@@ -895,6 +904,15 @@ function parseDXF(buffer){
     pieces.length=0;
     const loose=parseLooseEntities(pairs);
     if(loose.some(e=>e.type==="poly"||e.type==="line"||e.type==="point")) buildPiecesFromLoose(loose, pieces);
+  }
+
+  // ---- repeated piece names get " (2)", " (3)"… on the piece term, so every piece has its own
+  //      identity (layout, renames, seams, annotations and grade grouping all key on meta.name) ----
+  { const seen={};
+    pieces.forEach(p=>{ const n=p.meta.name; seen[n]=(seen[n]||0)+1; if(seen[n]===1) return;
+      const parts=String(n).split("."), k=parts.length>=2 ? parts.length-2 : 0;
+      parts[k]+=" ("+seen[n]+")"; p.meta.name=parts.join(".");
+    });
   }
 
   // ---- recover embedded annotations: layer 90 TEXT (JSON "ANNO1:" or legacy "ANNO:") ----

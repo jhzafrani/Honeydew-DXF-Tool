@@ -21,6 +21,12 @@ cp apparel-dxf-viewer.html apparel-dxf-viewer-site/index.html
 # then bump  const CACHE = "adxf-vNN"  in BOTH sw.js files
 ```
 
+The build number is also shown at the bottom of the sidebar. Set
+`const APP_BUILD = "adxf-vNN"` (same value as `CACHE`) and `APP_BUILD_DATE` in
+`apparel-dxf-viewer.html` **before** copying it into the deploy folders.
+`tools/tests/buildstamp.js` fails if any of the three disagree, or if a deploy
+copy is stale.
+
 ## Option A — deploy this folder directly (what we've always done)
 
 ```bash

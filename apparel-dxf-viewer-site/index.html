@@ -907,11 +907,14 @@ function parseDXF(buffer){
   }
 
   // ---- repeated piece names get " (2)", " (3)"… on the piece term, so every piece has its own
-  //      identity (layout, renames, seams, annotations and grade grouping all key on meta.name) ----
+  //      identity (layout, renames, seams, annotations and grade grouping all key on meta.name).
+  //      Count repeats WITHIN a size: some CADs (ET2000) put the size only in "Size:", so the
+  //      same name in the next size is the same piece graded, not a repeat ----
   { const seen={};
-    pieces.forEach(p=>{ const n=p.meta.name; seen[n]=(seen[n]||0)+1; if(seen[n]===1) return;
+    pieces.forEach(p=>{ const n=p.meta.name, key=n+"\u0001"+(p.meta.size||"");
+      seen[key]=(seen[key]||0)+1; if(seen[key]===1) return;
       const parts=String(n).split("."), k=parts.length>=2 ? parts.length-2 : 0;
-      parts[k]+=" ("+seen[n]+")"; p.meta.name=parts.join(".");
+      parts[k]+=" ("+seen[key]+")"; p.meta.name=parts.join(".");
     });
   }
 

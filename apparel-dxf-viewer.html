@@ -33,6 +33,8 @@
   #side h1 .dot{width:9px;height:9px;border-radius:50%;background:var(--accent2)}
   .scroll{overflow-y:auto;flex:1}
   #side{overflow:hidden}                       /* panes scroll individually, not the whole rail */
+  #buildStamp{flex:0 0 auto;margin-top:auto;padding:7px 16px;border-top:1px solid var(--line);
+    font-size:10.5px;color:var(--muted);text-align:center;letter-spacing:.2px;cursor:default}
   .sec{padding:12px 16px;border-bottom:1px solid var(--line)}
   /* independently-scrolling panes */
   .paneSec{display:flex;flex-direction:column;min-height:0}
@@ -298,6 +300,7 @@
         <div class="empty" id="annoEmpty">None yet — pick Point, Arrow, or Box and click the pattern.</div>
       </div>
     </div>
+    <div id="buildStamp"></div>
   </aside>
 
   <div id="main">
@@ -487,6 +490,17 @@
 
 <script>
 "use strict";
+/* ---- build stamp: APP_BUILD must equal CACHE in both sw.js files — bump all three on every
+        release (tools/tests/buildstamp.js checks they agree) ---- */
+const APP_BUILD = "adxf-v37";
+const APP_BUILD_DATE = "2026-11-05";
+(function(){
+  const el=document.getElementById("buildStamp"); if(!el) return;
+  const [y,m,d]=APP_BUILD_DATE.split("-").map(Number);
+  el.textContent="Build "+APP_BUILD+" · "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][m-1]+" "+d+", "+y;
+  el.title="The release this page is running. If it is older than the latest release, reload the page — "
+    +"an installed copy can take two reloads to pick up a new build.";
+})();
 /* ============================================================
    Apparel DXF parser (ANSI/AAMA — ASTM D6673 family)
    ============================================================ */

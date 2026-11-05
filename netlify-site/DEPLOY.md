@@ -1,9 +1,18 @@
 # Deploy the Apparel DXF Viewer to Netlify
 
-Existing site:
-- Site name: **apparel-dxf-viewer**
-- Site ID: `9de0ac8f-4cf2-4e13-931f-500db0a325e2`
-- Live URL: https://apparel-dxf-viewer.netlify.app
+The one site to deploy to (Jim, 2026-11-05: "Lets use the original site"):
+- Site name: **honeydew-dxf-tool**, password-protected
+- Site ID: `ec370dd9-f40f-4d62-9da0-84b8d6df0f8a`
+- Live URL: https://honeydew-dxf-tool.netlify.app (the link in the user manual)
+
+Do **not** deploy to `apparel-dxf-viewer` (`9de0ac8f-…`) or `clever-tulumba-2e79d5`.
+Both are leftover copies. Until 2026-11-05 releases went to `apparel-dxf-viewer` by
+mistake, so the manual's link kept serving the Aug 18 build. After a deploy, check
+that the sidebar footer on the live site shows the new `adxf-vNN`.
+
+Deploy from a clean export (`git archive HEAD | tar -x -C <dir>`), not from a git
+worktree: the uploader ships a worktree's `.git` pointer file, and Netlify then fails
+at "preparing repo".
 
 > **The site root is this `netlify-site/` folder, not the repo root.**
 > The repo root has no `index.html` — publishing it directly is what causes
@@ -31,7 +40,7 @@ copy is stale.
 
 ```bash
 cd netlify-site
-npx netlify-cli deploy --prod --dir . --site 9de0ac8f-4cf2-4e13-931f-500db0a325e2
+npx netlify-cli deploy --prod --dir . --site ec370dd9-f40f-4d62-9da0-84b8d6df0f8a
 ```
 
 `--dir .` makes this folder the site root, so `index.html` is served at `/`.
@@ -40,7 +49,7 @@ npx netlify-cli deploy --prod --dir . --site 9de0ac8f-4cf2-4e13-931f-500db0a325e
 
 ```bash
 # from the repo root
-npx netlify-cli deploy --prod --dir netlify-site --site 9de0ac8f-4cf2-4e13-931f-500db0a325e2
+npx netlify-cli deploy --prod --dir netlify-site --site ec370dd9-f40f-4d62-9da0-84b8d6df0f8a
 ```
 
 Note the `--dir netlify-site`. Running `--dir .` from the repo root publishes a
